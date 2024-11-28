@@ -1,0 +1,45 @@
+*****************************************************************
+Explanation of BiqBin parameters (default values are in biqbin.h)
+*****************************************************************
+
+init_bundle_iter = initial number of iterations of bundle method
+max_bundle_iter = maximum number of iterations of bundle method
+
+triag_iter, pent_iter, hept_iter = first basic SDP relaxation is solved, then triangle inequalities 
+				   are added for the next triag_iter iterations, then pentagonal and heptagonal
+				   for the next pent_iter and hept_iter
+
+max_outer_iter	= maximum number if iterations of cutting planes algorithm
+extra_iter = when max_outer_iter is reached check if extra iteration would close the gap, i.e. prune the node
+
+NOTE: all cutting planes are in the form B(X) <= 1 for appropriate operator B.
+violated_TriIneq = violation level of triangle inequalities, i.e.
+                   B(X) - 1 > violated_TriIneq
+
+TriIneq = maximum number of triangle inequalities to add in each separation
+          of new cutting planes. If adjust_TriIneq is set to 1, then TriIneq = n * 10,
+          where n is the size of the original problem.
+
+PentIneq and HeptaIneq = maximum number of pentagonal and heptagonal inequalities
+                         to add in each separation of new cutting planes. Note that
+                         for these numbers it should hold:
+                         3 * Pent_Trials <= PentIneq         (3 types of pent ineq)
+                         4 * Hepta_Trials <= HeptaIneq       (4 types of hepta ineq)
+
+Pent_Trials and Hepta_Trials = number of times simulated anneling is run for each type of 
+                               corresponding pentagonal or heptagonal inequality
+
+include_Pent and include_Hepta = whether to include pentagonal and/or heptagonal inequalities
+				 in SDP bound
+
+root:  if set to 1 only the SDP bound at root node will be computed
+
+use_diff:  if set to 1 cutting planes will only be added to SDP bound computation when
+           neccessary. This helps traversing the B&B tree faster. 
+
+time limit = maximum number of seconds allowed for the algorithm to run. If 0, biqbin stops
+             when optimum solution is found. 
+
+branchingStrategy = select branching strategy:
+                    LEAST_FRACTIONAL  0
+                    MOST_FRACTIONAL   1 
