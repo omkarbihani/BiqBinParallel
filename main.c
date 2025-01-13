@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <mpi.h>
+#include <stddef.h>
 
 #include "biqbin.h"  
 
