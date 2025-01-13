@@ -15,11 +15,11 @@ void bundle_method(Problem *PP, double *t, int bdl_iter) {
     extern double *X_bundle;        // bundle of matrices Xi
     extern double *F;               // bundle of <L,Xi>
     extern double *G;               // bundle of gradients
-    extern double *dual_gamma;      // dual variable to cutting plane inequalities
+    extern double *dual_gamma;           // dual variable to cutting plane inequalities
     extern double *dgamma;          // step vector for dual_gamma
-    exdouble *gamma_test;      
+    extern double *gamma_test;      
     extern double *lambda;          // contains scalars of convex combinations of bundle matrices
-    extern double *eta;             // dual variable to dual_gamma >= 0 caint 
+    extern double *eta;             // dual variable to dual_gamma >= 0 constraint 
 
     // number of cutting planes
     int m = PP->NIneq + PP->NPentIneq + PP->NHeptaIneq; 
@@ -55,19 +55,19 @@ void bundle_method(Problem *PP, double *t, int bdl_iter) {
         /*** compute lambda, eta and dgamma ***/
 
         // zeta = -F - G'*dual_gamma
-py_(&k, F, &inc, zeta, &inc); // copy F into zeta
+        dcopy_(&k, F, &inc, zeta, &inc); // copy F into zeta
 
         alpha = -1.0;
         beta = -1.0;
         TRANS = 'T';
-        dgemv_(&TRANS, &m, &k, &alpha, G, &m, dual_gamma, &inc,a, zeta, &inc);
+        dgemv_(&TRANS, &m, &k, &alpha, G, &m, dual_gamma, &inc, &beta, zeta, &inc);
 
         /*** solve QP ***/
-        lambda_eta(PP, zeta, G, dual_gamma, dgammmbda, eta, t);
+        lambda_eta(PP, zeta, G, dual_gamma, dgamma, lambda, eta, t);
 
-        /*** make a step: gamma_test = dual_gamma + dgam**/
+        /*** make a step: gamma_test = dual_gamma + dgamma; ***/
         for (int i = 0; i < m; ++i)
-            gamma_test[i] = dual_gamma[i] + d[i];
+            gamma_test[i] = dual_gamma[i] + dgamma[i];
 
         /*** evaluate function at gamma_test ***/
         f_test = fct_eval(PP, gamma_test, X_test, g);
@@ -92,8 +92,10 @@ py_(&k, F, &inc, zeta, &inc); // copy F into zeta
          */         
         if (f - f_test > 0.05 * del) { // SERIOUS STEP
         
-            // dual_gamma = gammt
-            dcopy_(&m, gamma_test, &inc, dual_gamma, &inc)            // f = f_test
+            // dual_gamma = gamma_test
+            dcopy_(&m, gamma_test, &inc, dual_gamma, &inc);  
+
+            // f = f_test
             f = f_test;
 
             /*** compute primal X (as convex combination)
@@ -237,7 +239,7 @@ py_(&k, F, &inc, zeta, &inc); // copy F into zeta
 }
 
 /*** evaluate dual function: compute its value f and subgradient g ***/
-double fct_eval(const Problem *PP, double *dual_gamma, doubl double *g) {
+double fct_eval(const Problem *PP, double *dual_gamma, double *X, double *g) {
 
     int n = PP->n;
     int m = PP->NIneq + PP->NPentIneq + PP->NHeptaIneq;
@@ -245,20 +247,23 @@ double fct_eval(const Problem *PP, double *dual_gamma, doubl double *g) {
     int inc = 1;
     double f;   // function value
  
-    /* L0 = L - A^T(dual_gamma) */ble *L0;
+    /* L0 = L - A^T(dual_gamma) */
+    double *L0;
     alloc_matrix(L0, n, double);
     dcopy_(&nn, PP->L, &inc, L0, &inc);
 
     if (m > 0)
         op_Bt(PP, L0, dual_gamma);
 
-olve basic SDP relaxation */
+    /* solve basic SDP relaxation */
     ipm_mc_pk(L0, n, X, &f, 0);
 
     if (m > 0) {
-        /* compute function value f: add sum(dual_gamma)* and subgradient g */
+        /* compute function value f: add sum(dual_gamma) 
+         * and subgradient g */
         for (int i = 0; i < m; ++i) {
-            f += dual_gamma[i     g[i] = 1.0; 
+            f += dual_gamma[i];
+            g[i] = 1.0; 
         }
 
         op_B(PP, g, X);
@@ -275,16 +280,16 @@ olve basic SDP relaxation */
  * INPUT:
  *          PP ... current subproblem
  *        zeta ... -F - G'*dual_gamma;
- *      G ... subgradients
- *       dual_gamma ... cu dual_gamma      
-        t ... penalty parameter in the bundle method
+ *           G ... subgradients
+ *       dual_gamma ... current dual_gamma      
+ *           t ... penalty parameter in the bundle method
  *
  * OUTPUT:
  *      dgamma ... step direction
  * lambda, eta ... solutions of QP
  *           t ... penalty parameter in the bundle method
  */
-void lambda_eta(const Problem *PP, double *zeta, double *G, double *dual_gamma, doublamma, double *lambda, double *eta, double *t) {
+void lambda_eta(const Problem *PP, double *zeta, double *G, double *dual_gamma, double *dgamma, double *lambda, double *eta, double *t) {
 
     int m = PP->NIneq + PP->NPentIneq + PP->NHeptaIneq;      // number of inequalities
     int k = PP->bundle;                     // size of bundle
@@ -339,10 +344,10 @@ void lambda_eta(const Problem *PP, double *zeta, double *G, double *dual_gamma, 
         beta = 0.0;
         dgemv_(&TRANS, &m, &k, &alpha, G, &m, lambda, &inc, &beta, tmp, &inc);
 
-        /* eta = max(0, -dual_gamma/t + tm
+        /* eta = max(0, -dual_gamma/t + tmp) */
         /* dgamma = t*(eta-tmp) */
         for (int i = 0; i < m; ++i) {
-            eta[i] = -dual_gamma[i]/(*tmp[i];
+            eta[i] = -dual_gamma[i]/(*t) + tmp[i];
             eta[i] = (eta[i] > 0) ? eta[i] : 0;
             dgamma[i] = (*t) * (eta[i] - tmp[i]);
         }
