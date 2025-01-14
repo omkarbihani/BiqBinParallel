@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  dev-container:
+    build: .
+    image: biqbin-image:latest
+    container_name: biqbin
+    volumes:
+      - .:/parallel_biqbin_maxcut
+    tty: true
