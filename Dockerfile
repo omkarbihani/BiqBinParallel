@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 
+FROM ubuntu:22.04 
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -10,8 +10,13 @@ RUN apt-get update && apt-get install -y \
     mpich \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /parallel_biqbin_maxcut
+WORKDIR /solver
 
-COPY . /parallel_biqbin_maxcut
+RUN chmod -R 777 .
 
-CMD ["bash"]
+COPY . .
+
+USER 1001:1001
+
+RUN make clean
+RUN make

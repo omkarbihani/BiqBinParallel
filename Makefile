@@ -38,10 +38,12 @@ $(BINS) : $(OBJS)
 
 
 # BiqBin code rules 
-$(OBJ)/%.o : %.c
+$(OBJ)/%.o : %.c | $(OBJ)
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
 		
+$(OBJ):
+	mkdir -p $(OBJ)
 
 # Clean rule #
 clean :
-	rm $(BINS) $(OBJS)
+	rm -rf $(BINS) $(OBJS) $(OBJ)
