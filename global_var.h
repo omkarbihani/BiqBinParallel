@@ -24,11 +24,11 @@ double *X_bundle;                   // containts bundle matrices as columns
 double *X_test;                     // matching pair X for gamma_test
 
 /* DUAL variables */
-double *gamma;                      // (nonnegative) dual multiplier to cutting planes
+double *dual_gamma;                      // (nonnegative) dual multiplier to cutting planes
 double *dgamma;                     // step direction vector
 double *gamma_test;
 double *lambda;                     // vector containing scalars of convex combinations of bundle matrices X_i
-double *eta;                        // dual multiplier to gamma >= 0 constraint
+double *eta;                        // dual multiplier to dual_gamma >= 0 constraint
 double *F;                          // vector of values <L,X_i>
 double *g;                          // subgradient
 double *G;                          // matrix of subgradients
