@@ -1,0 +1,4 @@
+- added Dockerfile
+- modified Makefile
+    - mkdir command for OBJ to make Obj directory if there isn't one
+    - in clean rule to rm command added -rf and $(OBJ)
