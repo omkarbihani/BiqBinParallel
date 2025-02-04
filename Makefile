@@ -1,5 +1,11 @@
 #### BiqBin makefile ####
 
+# container image name
+IMAGE ?= parallel-biqbin-maxcut
+# container image tag
+TAG ?= 1.0.0
+DOCKER_BUILD_PARAMS ?=
+
 # Directories
 OBJ = Obj
 
@@ -31,6 +37,13 @@ CFLAGS = $(OPTI) -Wall -W -pedantic
 
 # Default rule is to create all binaries #
 all: $(BINS)
+	
+docker: 
+	docker build $(DOCKER_BUILD_PARAMS) --progress=plain -t $(IMAGE):$(TAG)  . 
+
+docker-clean: 
+	docker rmi -f $(IMAGE):$(TAG) 
+
 
 # Rules for binaries #
 $(BINS) : $(OBJS)
