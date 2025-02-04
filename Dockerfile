@@ -18,3 +18,4 @@ USER 1001:1001
 
 RUN make clean
 RUN make
+RUN make test

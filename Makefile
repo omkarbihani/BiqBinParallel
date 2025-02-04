@@ -18,6 +18,13 @@ OPTI     = -O3 -ffast-math -fexceptions -fPIC -fno-common
 # binary
 BINS =  biqbin
 
+# test command
+TEST = ./test.sh \
+	$(BINS) \
+	test/Instances/rudy/g05_60.0 \
+	test/Instances/rudy/g05_60.0-expected_output \
+	test/params
+
 # BiqBin objects
 BBOBJS = $(OBJ)/bundle.o $(OBJ)/allocate_free.o $(OBJ)/bab_functions.o \
 	 $(OBJ)/bounding.o $(OBJ)/cutting_planes.o \
@@ -37,10 +44,16 @@ CFLAGS = $(OPTI) -Wall -W -pedantic
 
 # Default rule is to create all binaries #
 all: $(BINS)
+
+test: all
+	$(TEST)
 	
 docker: 
 	docker build $(DOCKER_BUILD_PARAMS) --progress=plain -t $(IMAGE):$(TAG)  . 
 
+docker-test:
+	docker run --rm $(IMAGE):$(TAG) $(TEST)
+	
 docker-clean: 
 	docker rmi -f $(IMAGE):$(TAG) 
 
