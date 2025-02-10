@@ -25,6 +25,13 @@ TEST = ./test.sh \
 	test/Instances/rudy/g05_60.0-expected_output \
 	test/params
 
+# python test command
+TEST_PYTHON = ./test.sh \
+	"python3 test.py" \
+	test/Instances/rudy/g05_60.0 \
+	test/Instances/rudy/g05_60.0-expected_output \
+	test/params
+
 # BiqBin objects
 BBOBJS = $(OBJ)/bundle.o $(OBJ)/allocate_free.o $(OBJ)/bab_functions.o \
 	 $(OBJ)/bounding.o $(OBJ)/cutting_planes.o \
@@ -47,6 +54,7 @@ all: $(BINS)
 
 test: all
 	$(TEST)
+	$(TEST_PYTHON)
 	
 docker: 
 	docker build $(DOCKER_BUILD_PARAMS) --progress=plain -t $(IMAGE):$(TAG)  . 
