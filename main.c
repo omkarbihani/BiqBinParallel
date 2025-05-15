@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stddef.h>
 #include <mpi.h>
 
 #include "biqbin.h"  
@@ -13,7 +14,7 @@ extern FILE *output;
 
 int num_workers_used = 0;
 
-int main(int argc, char **argv) {
+int solver_main(int argc, char **argv) {
 
     /*******************************************************
     *********** BRANCH & BOUND: PARALLEL ALGORITHM ********
@@ -262,4 +263,7 @@ int main(int argc, char **argv) {
     MPI_Finalize();
 
     return 0;
+}
+int main(int argc, char **argv) {
+    return solver_main(argc, argv);
 }

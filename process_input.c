@@ -124,12 +124,12 @@ int processCommandLineArguments(int argc, char **argv, int rank) {
 
 
     if (rank == 0) {
-        // print parameters to output file
-        fprintf(output, "BiqBin parameters:\n");
-#define P(type, name, format, def_value)\
-            fprintf(output, "%20s = "format"\n", #name, params.name);
-        PARAM_FIELDS
-#undef P
+            // print parameters to output file
+            fprintf(output, "BiqBin parameters:\n");
+    #define P(type, name, format, def_value)\
+    fprintf(output, "%20s = " format "\n", #name, params.name);
+            PARAM_FIELDS
+    #undef P
     }
 
     return read_error;
@@ -164,9 +164,11 @@ int readParameters(const char *path, int rank) {
             sscanf(s, "%[^=^ ]", param_name);
 
             // read parameter value
-#define P(type, name, format, def_value)\
-            if(strcmp(#name, param_name) == 0)\
-            sscanf(s, "%*[^=]="format"\n", &(params.name));
+            #define P(type, name, format, def_value)             \
+            if (strcmp(#name, param_name) == 0)              \
+            {                                                \
+                sscanf(s, "%*[^=]= " format, &params.name);   \
+            }
             PARAM_FIELDS
 #undef P
 

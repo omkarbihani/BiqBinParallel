@@ -15,7 +15,7 @@ extern double *X_bundle;                     // current X
 extern double *F;                            // bundle of function values
 extern double *G;                            // bundle of subgradients
 extern double *g;                            // subgradient
-extern double *gamma;                        // dual multiplers for triangle inequalities
+extern double *dual_gamma;                        // dual multiplers for triangle inequalities
 extern double *X_test;
 
 extern double diff;		                     // difference between basic SDP relaxation and bound with added cutting planes
@@ -33,8 +33,8 @@ double SDPbound(BabNode *node, Problem *SP, Problem *PP, int rank) {
     double viol7 = 0.0;             // maximum violation of heptagonal inequalities
     int count = 0;                  // number of iterations (adding and purging of cutting planes)
 
-    int triag;                      // starting index for pentagonal inequalities in vector gamma
-    int penta;                      // starting index for heptagonal inequalities in vector gamma
+    int triag;                      // starting index for pentagonal inequalities in vector dual_gamma
+    int penta;                      // starting index for heptagonal inequalities in vector dual_gamma
 
     int inc = 1;
     int inc_e = 0;
@@ -68,7 +68,7 @@ double SDPbound(BabNode *node, Problem *SP, Problem *PP, int rank) {
     PP->NHeptaIneq = 0;
     int Hepta_NumAdded = 0;
     int Hepta_NumSubtracted = 0;                         
-
+    double t;
     /* solve basic SDP relaxation with interior-point method */
     ipm_mc_pk(PP->L, PP->n, X, &f, 0);
 
@@ -117,22 +117,22 @@ double SDPbound(BabNode *node, Problem *SP, Problem *PP, int rank) {
     }
 
     /* separate first triangle inequality */
-    viol3 = updateTriangleInequalities(PP, gamma, &Tri_NumAdded, &Tri_NumSubtracted);
+    viol3 = updateTriangleInequalities(PP, dual_gamma, &Tri_NumAdded, &Tri_NumSubtracted);
 
     /***************
      * Bundle init *
      ***************/
 
-    // set gamma = 0
+    // set dual_gamma = 0
     for (int i = 0; i < PP->NIneq; ++i) {
-        gamma[i] = Cuts[i].y;
+        dual_gamma[i] = Cuts[i].y;
     }
 
     // t = 0.5 * (f - fh) / (PP->NIneq * viol3^2)
-    double t = 0.5 * (bound - Bab_LBGet()) / (PP->NIneq * viol3 * viol3);
+    t = 0.5 * (bound - Bab_LBGet()) / (PP->NIneq * viol3 * viol3);
 
-    // first evaluation at gamma: f = fct_eval(PP, gamma, X, g)
-    // since gamma = 0, this is just basic SDP relaxation
+    // first evaluation at dual_gamma: f = fct_eval(PP, dual_gamma, X, g)
+    // since dual_gamma = 0, this is just basic SDP relaxation
     // --> only need to compute subgradient
     dcopy_(&PP->NIneq, &e, &inc_e, g, &inc);
     op_B(PP, g, X);
@@ -221,17 +221,17 @@ double SDPbound(BabNode *node, Problem *SP, Problem *PP, int rank) {
         if (!prune && !giveup) {
             
             triag = PP->NIneq;          // save number of triangle and pentagonal inequalities before purging
-            penta = PP->NPentIneq;      // --> to know with which index in dual vector gamma, pentagonal
+            penta = PP->NPentIneq;      // --> to know with which index in dual vector dual_gamma, pentagonal
                                         // and heptagonal inequalities start!
 
-            viol3 = updateTriangleInequalities(PP, gamma, &Tri_NumAdded, &Tri_NumSubtracted);
+            viol3 = updateTriangleInequalities(PP, dual_gamma, &Tri_NumAdded, &Tri_NumSubtracted);
                       
             /* include pentagonal and heptagonal inequalities */          
             if ( params.include_Pent && (count > params.triag_iter || viol3 < 0.2) )
-                viol5 = updatePentagonalInequalities(PP, gamma, &Pent_NumAdded, &Pent_NumSubtracted, triag);  
+                viol5 = updatePentagonalInequalities(PP, dual_gamma, &Pent_NumAdded, &Pent_NumSubtracted, triag);  
 
             if ( params.include_Hepta && ( (count > params.triag_iter + params.pent_iter) || (viol3 < 0.2 && (1 - viol5 < 0.4)) ) )
-                viol7 = updateHeptagonalInequalities(PP, gamma, &Hepta_NumAdded, &Hepta_NumSubtracted, triag + penta);      
+                viol7 = updateHeptagonalInequalities(PP, dual_gamma, &Hepta_NumAdded, &Hepta_NumSubtracted, triag + penta);      
         }
         else {               
             Tri_NumAdded = 0;
@@ -263,18 +263,18 @@ double SDPbound(BabNode *node, Problem *SP, Problem *PP, int rank) {
         /*** bundle update: due to separation of new cutting planes ***/
         if (!done) {
 
-            // adjust size of gamma
+            // adjust size of dual_gamma
             for (int i = 0; i < PP->NIneq; ++i)
-                gamma[i] = Cuts[i].y;
+                dual_gamma[i] = Cuts[i].y;
             
             for (int i = 0; i < PP->NPentIneq; ++i)
-                gamma[i + PP->NIneq] = Pent_Cuts[i].y;
+                dual_gamma[i + PP->NIneq] = Pent_Cuts[i].y;
 
             for (int i = 0; i < PP->NHeptaIneq; ++i)
-                gamma[i + PP->NIneq + PP->NPentIneq] = Hepta_Cuts[i].y;
+                dual_gamma[i + PP->NIneq + PP->NPentIneq] = Hepta_Cuts[i].y;
 
 
-            fct_eval(PP, gamma, X_test, g);
+            fct_eval(PP, dual_gamma, X_test, g);
 
             // G
             /* for i = 1:k
