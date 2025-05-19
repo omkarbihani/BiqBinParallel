@@ -144,6 +144,7 @@ extern void dsyr_(char *uplo, int *n, double *alpha, double *x, int *incx, doubl
 // level 3 blas
 extern void dsymm_(char *side, char *uplo, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
 extern void dsyrk_(char *UPLO, char *TRANS, int *N, int *K, double *ALPHA, double *A, int *LDA, double *BETA, double *C, int *LDC);
+extern void dgemm_(char *transa, char *transb, int *l, int *n, int *m, double *alpha, const void *a, int *lda, void *b, int *ldb, double *beta, void *c, int *ldc);
 
 /****** LAPACK  ******/
 
@@ -231,7 +232,6 @@ void op_Bt(const Problem *P, double *X, const double *tt);
 /* process_input.c */
 void print_symmetric_matrix(double *Mat, int N);
 int processCommandLineArguments(int argc, char **argv, int rank);
-int readData(const char *instance);
 int readParameters(const char *path, int rank);
 
 /* qap_simuted_annealing.c */

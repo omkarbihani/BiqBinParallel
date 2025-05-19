@@ -10,6 +10,6 @@
 #endif
 
 EXTERN_C double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num);
-
+EXTERN_C int wrapped_read_data(const char *instance);
 
 #endif

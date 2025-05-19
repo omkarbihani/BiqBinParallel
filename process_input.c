@@ -5,6 +5,7 @@
 #include <mpi.h>
 
 #include "biqbin.h"
+#include "wrapper.h"
 
 extern FILE *output;
 extern BiqBinParameters params;
@@ -70,7 +71,7 @@ int processCommandLineArguments(int argc, char **argv, int rank) {
         }
 
         // Read the input file instance
-        read_error = readData(argv[1]);
+        read_error = wrapped_read_data(argv[1]);
 
         // bcast first read_error then whole graph
         MPI_Bcast(&read_error, 1, MPI_INT, 0, MPI_COMM_WORLD);

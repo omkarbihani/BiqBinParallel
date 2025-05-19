@@ -53,8 +53,8 @@ double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num
         {
             np::initialize();
             
-            // Wrap C++ pointers as NumPy arrays **without copying**
-            np::ndarray np_subL = np::from_data(P->L, np::dtype::get_builtin<double>(),
+        // Wrap C++ pointers as NumPy arrays **without copying**
+        np::ndarray np_subL = np::from_data(P->L, np::dtype::get_builtin<double>(),
                                             py::make_tuple(P->n),
                                             py::make_tuple(sizeof(double)), py::object());
 
@@ -80,22 +80,28 @@ double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num
     return GW_heuristic(P0, P, node, x, num);
 }
 
-// double GW_wrapped(int org_problem_size, np::ndarray &subproblem_L, int subproblem_n, np::ndarray &xfixed, np::ndarray &sol_x, np::ndarray &x, int num) {
-//     // Convert numpy arrays to raw pointers with proper casting
-//     double* subproblem_L_ptr = reinterpret_cast<double*>(subproblem_L.get_data());
-//     int* xfixed_ptr = reinterpret_cast<int*>(xfixed.get_data());
-//     int* sol_x_ptr = reinterpret_cast<int*>(sol_x.get_data());
-//     int* x_ptr = reinterpret_cast<int*>(x.get_data());
-//     return 2.0;
-//     // return GW_heuristic(org_problem_size, subproblem_L_ptr, subproblem_n,
-//     //     xfixed_ptr, sol_x_ptr, x_ptr, num);
-// }
+py::object py_read_data_override;
+
+void set_read_data_override(py::object func) {
+    py_read_data_override = func;
+}
+
+int wrapped_read_data(const char *instance) {
+    if (py_read_data_override && !py_read_data_override.is_none())
+    {
+        int success = py::extract<int>(py_read_data_override(instance));
+        std::cout << "success ?= " << success << std::endl;
+        return success;
+    }
+    return readData(instance);
+}
 
 // Python module exposure
 BOOST_PYTHON_MODULE(solver)
 {
     np::initialize();
     py::def("set_heuristic", set_GW_heuristic_override);
-    // def("GW_heuristic", &GW_wrapped);
+    py::def("set_read_data", set_read_data_override);
+    def("read_bqp_data", &read_data_BQP);
     def("run", &run_py);
 }

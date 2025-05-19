@@ -50,5 +50,7 @@ typedef struct BabNode
 
 EXTERN_C double GW_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num);
 EXTERN_C int wrapped_main(int argc, char **argv);
+EXTERN_C int readData(const char *instance);
+EXTERN_C int read_data_BQP(const char *instance);
 
 #endif /*BIQBIN_cpp_api */
