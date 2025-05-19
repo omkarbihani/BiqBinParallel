@@ -4,7 +4,8 @@
 OBJ = Obj
 
 # Compiler
-CC = mpic++
+CC = mpicc
+CPP = mpic++
 
 LINALG 	 = -lopenblas -lm 
 OPTI     = -O3 -ffast-math -fexceptions -fPIC -fno-common
@@ -26,10 +27,11 @@ BBOBJS = $(OBJ)/bundle.o $(OBJ)/allocate_free.o $(OBJ)/bab_functions.o \
          $(OBJ)/evaluate.o $(OBJ)/heap.o $(OBJ)/ipm_mc_pk.o \
          $(OBJ)/heuristic.o $(OBJ)/main.o $(OBJ)/operators.o \
          $(OBJ)/process_input.o $(OBJ)/qap_simulated_annealing.o \
-		 $(OBJ)/wrapper.o
+
+BBOBJSCPP =	$(OBJ)/wrapper.o
 
 # All objects
-OBJS = $(BBOBJS)
+OBJS = $(BBOBJS) $(BBOBJSCPP)
 
 CFLAGS = $(OPTI) -Wall -W -pedantic 
 
@@ -42,18 +44,18 @@ all: $(BINS) $(PYMOD_OUT)
 
 # Rules for binaries
 $(BINS): $(OBJS)
-	$(CC) -o $@ $^ $(INCLUDES) $(LIB) $(CFLAGS) $(LINALG)
+	$(CPP) -o $@ $^ $(INCLUDES) $(LIB) $(CFLAGS) $(LINALG)
 
 # BiqBin code rules
 $(OBJ)/%.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
 
 $(OBJ)/%.o: %.cpp
-	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
+	$(CPP) $(CFLAGS) $(INCLUDES) -c -o $@ $<
 
 # Python module rule
 $(PYMOD_OUT): $(OBJS)
-	$(CC) -o $@ $^ -shared -fPIC $(INCLUDES) $(LIB) $(CFLAGS) $(LINALG) -Wl,--no-undefined
+	$(CPP) -o $@ $^ -shared -fPIC $(INCLUDES) $(LIB) $(CFLAGS) $(LINALG) -Wl,--no-undefined
 
 
 # Clean rule #

@@ -14,7 +14,7 @@ extern FILE *output;
 
 int num_workers_used = 0;
 
-int solver_main(int argc, char **argv) {
+int wrapped_main(int argc, char **argv) {
 
     /*******************************************************
     *********** BRANCH & BOUND: PARALLEL ALGORITHM ********
@@ -265,5 +265,5 @@ int solver_main(int argc, char **argv) {
     return 0;
 }
 int main(int argc, char **argv) {
-    return solver_main(argc, argv);
+    return wrapped_main(argc, argv);
 }

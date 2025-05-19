@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "biqbin.h"
+#include "wrapper.h"
 
 extern double *X;
 extern double *Z;       // stores Cholesky decomposition: X = ZZ^T
@@ -70,7 +71,7 @@ double runHeuristic(Problem *P0, Problem *P, BabNode *node, int *x) {
                 Z[j + i*n] = 0.0;
 
         // Goemans-Williamson heuristic
-        heur_val = heuristic(P0->n, P->L, P->n, node->xfixed, node->sol.X, x, P0->n);
+        heur_val = wrapped_heuristic(P0, P, node, x, P0->n);
 
         if (heur_val > fh) {
 
@@ -107,19 +108,20 @@ double runHeuristic(Problem *P0, Problem *P, BabNode *node, int *x) {
 
 
 /* Goemans-Williamson random hyperplane heuristic */
-double GW_heuristic(int org_problem_size, double* subproblem_L, int subproblem_n, int* xfixed, int* sol_x, int *x, int num) {
+double GW_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num) {
+
     // Problem *P0 ... the original problem
     // Problem *P  ... the current subproblem
     //         num ... number of random hyperplanes
 
     int index;
-    int N = subproblem_n;
+    int N = P->n;
 
     // (local) temporary vector of size X
     int temp_x[N];                    
 
     // (global) temporary vector of size BabPbSize to store heuristic solutions
-    int sol[org_problem_size - 1];                 
+    int sol[P0->n - 1];                 
 
     double sca;                         // dot product of random vector v and col of Z
     double best = -BIG_NUMBER;          // best lower bound found
@@ -155,20 +157,20 @@ double GW_heuristic(int org_problem_size, double* subproblem_L, int subproblem_n
         }
 
         // improve feasible solution through 1-opt
-        mc_1opt(temp_x, subproblem_L, subproblem_n);
+        mc_1opt(temp_x, P);
 
         // store local cut temp_x into global cut sol
         index = 0;
-        for (int i = 0; i < org_problem_size-1; ++i) {
-            if (xfixed[i]) 
-                sol[i] = sol_x[i];
+        for (int i = 0; i < P0->n-1; ++i) {
+            if (node->xfixed[i]) 
+                sol[i] = node->sol.X[i];
             else {
                 sol[i] = (temp_x[index]+1)/2;
                 ++index;
             }
         }
 
-        update_best(x, sol, &best, org_problem_size);
+        update_best(x, sol, &best, P0);
       
     }
 
@@ -182,9 +184,9 @@ double GW_heuristic(int org_problem_size, double* subproblem_L, int subproblem_n
  * The objective value of x is returned.
  */
 // NOTE: this function is working in {-1,1} model!
-double mc_1opt(int *x, double *subproblem_L, int subproblem_n) {
+double mc_1opt(int *x, Problem *P) {
 
-    int N = subproblem_n;
+    int N = P->n;
 
     double *Lx, *d, *delta;
     int *I;
@@ -197,7 +199,7 @@ double mc_1opt(int *x, double *subproblem_L, int subproblem_n) {
     // Lx = L*x
     for (int i = 0; i < N; ++i)
         for (int j = 0; j < N; ++j)
-            Lx[i] += subproblem_L[j + i*N] * x[j];
+            Lx[i] += P->L[j + i*N] * x[j];
 
     // d = diag(L);
     // cost = x'*Lx
@@ -205,7 +207,7 @@ double mc_1opt(int *x, double *subproblem_L, int subproblem_n) {
     double cost = 0.0;
     
     for (int i = 0; i < N; ++i) {
-        d[i] = subproblem_L[i + i * N];
+        d[i] = P->L[i + i * N];
         cost += x[i] * Lx[i];
         delta[i] = d[i] - x[i] * Lx[i];
     }
@@ -233,7 +235,7 @@ double mc_1opt(int *x, double *subproblem_L, int subproblem_n) {
         num_I = 0;
         for (int j = 0; j < N; ++j) {
             
-            if ( fabs(subproblem_L[index + N * j]) > 0.001 ) { // add to I
+            if ( fabs(P->L[index + N * j]) > 0.001 ) { // add to I
                 I[num_I] = j;
                 ++num_I;
             }
@@ -242,12 +244,12 @@ double mc_1opt(int *x, double *subproblem_L, int subproblem_n) {
 
         if (x[index] > 0) { // Lx(I) = Lx(I)  - 2 *L(I,index);
             for (int i = 0; i < num_I; ++i) {
-                Lx[I[i]] -= 2 * subproblem_L[index + I[i] * N];
+                Lx[I[i]] -= 2 * P->L[index + I[i] * N];
             }
         }
         else { // Lx(I) = Lx(I)  + 2 *L(I,index);
             for (int i = 0; i < num_I; ++i) {
-                Lx[I[i]] += 2 * subproblem_L[index + I[i] * N];
+                Lx[I[i]] += 2 * P->L[index + I[i] * N];
             }
         }
 
@@ -291,10 +293,10 @@ double mc_1opt(int *x, double *subproblem_L, int subproblem_n) {
  * the objective value of xnew, then replaces xbest with xnew if
  * xnew is better. Also updates the best objective value, best.
  */
-int update_best(int *xbest, int *xnew, double *best, int org_problem_size) {
+int update_best(int *xbest, int *xnew, double *best, Problem *P0) {
 
     int success = 0;
-    int N = org_problem_size - 1; // N = BabPbSize
+    int N = P0->n - 1; // N = BabPbSize
 
     double heur_val = evaluateSolution(xnew);
 
