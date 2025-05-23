@@ -28,7 +28,7 @@ def get_max_cut_solution_SA(L: np.ndarray):
 set_heuristic(get_max_cut_solution_SA)
 
 # run needs a Python list ["biqbin", "path/to/instance", "path/to/params"]
-# returns a dictionary of the solution nodes ["solution"], maximum value ["max_val"], time taken ["time"] - (not yet implemented)
+# returns a dictionary of the solution nodes ["solution"], maximum value ["max_val"], time taken ["time"]
 data = run(sys.argv)
 
 # Only the master process receives the solution

@@ -31,6 +31,7 @@ namespace np = boost::python::numpy;
 
 /* final solution */
 std::vector<int> selected_nodes;
+double spent_time;
 
 // Global Python override function (if any)
 py::object python_GW_override;
@@ -66,17 +67,6 @@ np::ndarray get_selected_nodes_np_array()
     return result;
 }
 
-/// @brief Copy the solution before memory is freed, so it can be retrieved in Python
-void copy_solution() {
-    for (int i = 0; i < BabPbSize; ++i)
-    {
-        if (BabSol->X[i] == 1)
-        {
-            selected_nodes.push_back(i + 1); // 1-based indexing
-        }
-    }
-}
-
 /// @brief Run the solver, retrieve the solution
 /// @param py_args argv in a Python string list ["biqbin", "graph_instance_path", "parameters_path"]
 /// @return dictionary of "max_val" value of maximum cut and "solution" vertices
@@ -106,6 +96,7 @@ py::dict run_py(py::list py_args)
     py::dict result_dict;
     result_dict["max_val"] = Bab_LBGet();
     result_dict["solution"] = get_selected_nodes_np_array();
+    result_dict["time"] = spent_time;
     return result_dict;
 }
 
@@ -143,9 +134,7 @@ double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num
 {
     if (python_GW_override && !python_GW_override.is_none())
     {
-        //
         pre_heuristic_computes();
-        int N = P->n;
         std::vector<int> sol(P0->n - 1);
 
         double best_value = - 1e+9; // best lower bound found
@@ -233,4 +222,21 @@ BOOST_PYTHON_MODULE(solver)
     py::def("set_read_data", &set_read_data_override);
     def("read_bqp_data", &read_data_BQP);
     def("run", &run_py);
+}
+
+/// @brief Copy the solution before memory is freed, so it can be retrieved in Python
+void copy_solution() {
+    for (int i = 0; i < BabPbSize; ++i)
+    {
+        if (BabSol->X[i] == 1)
+        {
+            selected_nodes.push_back(i + 1); // 1-based indexing
+        }
+    }
+}
+
+/// @brief record time at the end
+/// @param time_taken 
+void record_time(double time_taken) {
+    spent_time = time_taken;
 }

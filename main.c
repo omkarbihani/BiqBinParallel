@@ -247,7 +247,7 @@ int wrapped_main(int argc, char **argv) {
     /* Print results to the standard output and to the output file */
     if (rank == 0) {
         copy_solution();
-
+        record_time(MPI_Wtime() - TIME);
         printFinalOutput(stdout,Bab_numEvalNodes());
         printFinalOutput(output,Bab_numEvalNodes());
         fprintf(output, "Number of cores: %d\n", numbWorkers);

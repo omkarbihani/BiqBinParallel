@@ -96,7 +96,7 @@ TEST_ALL_100 = 	for i in $(shell seq 0 9); do \
 # TESTS
 TEST_ALL_60_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec python3 test.py" \
+			"mpiexec python3 run_example.py" \
 			rudy/g05_60.$$i \
 			rudy/g05_60.$$i-expected_output \
 			params ;\
@@ -104,7 +104,7 @@ TEST_ALL_60_PYTHON = 	for i in $(shell seq 0 9); do \
 
 TEST_ALL_80_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec python3 test.py" \
+			"mpiexec python3 run_example.py" \
 			rudy/g05_80.$$i \
 			rudy/g05_80.$$i-expected_output \
 			params ;\
@@ -112,7 +112,7 @@ TEST_ALL_80_PYTHON = 	for i in $(shell seq 0 9); do \
 
 TEST_ALL_100_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec python3 test.py" \
+			"mpiexec python3 run_example.py" \
 			rudy/g05_100.$$i \
 			rudy/g05_100.$$i-expected_output \
 			params ;\
