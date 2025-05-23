@@ -88,6 +88,7 @@ double SDPbound(BabNode *node, Problem *SP, Problem *PP, int rank) {
         }
     }
 
+    
     /* run heuristic */
     for (int i = 0; i < BabPbSize; ++i) {
         if (node->xfixed[i]) {

@@ -3,6 +3,7 @@
 #include <mpi.h>
 
 #include "biqbin.h"  
+#include "wrapper.h"
 
 #define HEAP_SIZE 1000000
 extern Heap *heap;
@@ -245,11 +246,13 @@ int wrapped_main(int argc, char **argv) {
 
     /* Print results to the standard output and to the output file */
     if (rank == 0) {
+        copy_solution();
+
         printFinalOutput(stdout,Bab_numEvalNodes());
         printFinalOutput(output,Bab_numEvalNodes());
-	fprintf(output, "Number of cores: %d\n", numbWorkers);
-	fprintf(output, "Maximum number of workers used: %d\n", num_workers_used);
-	printf("Maximum number of workers used: %d\n", num_workers_used);
+        fprintf(output, "Number of cores: %d\n", numbWorkers);
+        fprintf(output, "Maximum number of workers used: %d\n", num_workers_used);
+        printf("Maximum number of workers used: %d\n", num_workers_used);
         fclose(output);
     }
 
@@ -266,4 +269,10 @@ int wrapped_main(int argc, char **argv) {
 }
 int main(int argc, char **argv) {
     return wrapped_main(argc, argv);
+}
+
+/// @brief alloc matrix and alloc vector macros use this
+/// @param abort_code 
+void abort_alloc_fail(int abort_code) {
+    MPI_Abort(MPI_COMM_WORLD, abort_code);                                                      \
 }

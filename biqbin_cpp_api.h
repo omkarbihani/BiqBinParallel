@@ -8,6 +8,20 @@
 # define EXTERN_C
 #endif
 
+/* macros for allocating vectors and matrices */
+#define alloc_vector(var, size, type)                                                       \
+    var = (type *)calloc((size), sizeof(type));                                             \
+    if (var == NULL)                                                                        \
+    {                                                                                       \
+        fprintf(stderr,                                                                     \
+                "\nError: Memory allocation problem for variable " #var " in %s line %d\n", \
+                __FILE__, __LINE__);                                                        \
+        abort_alloc_fail(10);                                                          \
+    }
+
+#define alloc(var, type) alloc_vector(var, 1, type)
+#define alloc_matrix(var, size, type) alloc_vector(var, (size) * (size), type)
+
 /************************************************************************************************************/
 /* The main problem and any subproblems are stored using the following structure. */
 typedef struct Problem
@@ -52,5 +66,9 @@ EXTERN_C double GW_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int
 EXTERN_C int wrapped_main(int argc, char **argv);
 EXTERN_C int readData(const char *instance);
 EXTERN_C int read_data_BQP(const char *instance);
+EXTERN_C double Bab_LBGet(void);                              // returns global lower bound
+EXTERN_C int update_best(int *xbest, int *xnew, double *best, Problem *P0);
+EXTERN_C double evaluateSolution(int *sol);
+EXTERN_C void abort_alloc_fail(int abort_code);
 
-#endif /*BIQBIN_cpp_api */
+#endif

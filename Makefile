@@ -63,7 +63,11 @@ $(PYMOD_OUT): $(OBJS)
 clean :
 	rm -rf $(BINS) $(OBJS) $(PYMOD_OUT)
 
+clean-output:
+	rm -rf rudy/*.output*
+	rm -rf Instances/rudy/*.output*
 
+	
 # TESTS
 TEST_ALL_60 = 	for i in $(shell seq 0 9); do \
 			./test.sh \
@@ -88,6 +92,32 @@ TEST_ALL_100 = 	for i in $(shell seq 0 9); do \
 			rudy/g05_100.$$i-expected_output \
 			params ;\
 	done
+
+# TESTS
+TEST_ALL_60_PYTHON = 	for i in $(shell seq 0 9); do \
+			./test.sh \
+			"mpiexec python3 test.py" \
+			rudy/g05_60.$$i \
+			rudy/g05_60.$$i-expected_output \
+			params ;\
+	done
+
+TEST_ALL_80_PYTHON = 	for i in $(shell seq 0 9); do \
+			./test.sh \
+			"mpiexec python3 test.py" \
+			rudy/g05_80.$$i \
+			rudy/g05_80.$$i-expected_output \
+			params ;\
+	done
+
+TEST_ALL_100_PYTHON = 	for i in $(shell seq 0 9); do \
+			./test.sh \
+			"mpiexec python3 test.py" \
+			rudy/g05_100.$$i \
+			rudy/g05_100.$$i-expected_output \
+			params ;\
+	done
+
 test-all:
 	$(TEST_ALL_60)
 	$(TEST_ALL_80)
@@ -95,3 +125,11 @@ test-all:
 
 test:
 	$(TEST_ALL_60)
+
+test-python:
+	$(TEST_ALL_60_PYTHON)
+
+test-all-python:
+	$(TEST_ALL_60_PYTHON)
+	$(TEST_ALL_80_PYTHON)
+	$(TEST_ALL_100_PYTHON)

@@ -6,7 +6,7 @@
 #include <mpi.h>
 
 #include "biqbin_cpp_api.h"
-
+#include "blas_laplack.h"
 /************************************************************************************************************/
 
 // MESSAGES for MPI
@@ -44,20 +44,6 @@ typedef enum Tags
 /* Branching strategies */
 #define LEAST_FRACTIONAL 0
 #define MOST_FRACTIONAL 1
-
-/* macros for allocating vectors and matrices */
-#define alloc_vector(var, size, type)                                                       \
-    var = (type *)calloc((size), sizeof(type));                                             \
-    if (var == NULL)                                                                        \
-    {                                                                                       \
-        fprintf(stderr,                                                                     \
-                "\nError: Memory allocation problem for variable " #var " in %s line %d\n", \
-                __FILE__, __LINE__);                                                        \
-        MPI_Abort(MPI_COMM_WORLD, 10);                                                      \
-    }
-
-#define alloc(var, type) alloc_vector(var, 1, type)
-#define alloc_matrix(var, size, type) alloc_vector(var, (size) * (size), type)
 
 // BiqBin parameters and default values
 #ifndef PARAM_FIELDS
@@ -128,38 +114,6 @@ typedef struct Heap
     BabNode **data; /* array of BabNodes                  */
 } Heap;
 
-/****** BLAS  ******/
-// level 1 blas
-extern void dscal_(int *n, double *alpha, double *X, int *inc);
-extern void dcopy_(int *n, double *X, int *incx, double *Y, int *incy);
-extern double dnrm2_(int *n, double *x, int *incx);
-extern void daxpy_(int *n, double *alpha, double *X, int *incx, double *Y, int *incy);
-extern double ddot_(int *n, double *X, int *incx, double *Y, int *incy);
-
-// level 2 blas
-extern void dsymv_(char *uplo, int *n, double *alpha, double *A, int *lda, double *x, int *incx, double *beta, double *y, int *incy);
-extern void dgemv_(char *uplo, int *m, int *n, double *alpha, double *A, int *lda, double *X, int *incx, double *beta, double *Y, int *incy);
-extern void dsyr_(char *uplo, int *n, double *alpha, double *x, int *incx, double *A, int *lda);
-
-// level 3 blas
-extern void dsymm_(char *side, char *uplo, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
-extern void dsyrk_(char *UPLO, char *TRANS, int *N, int *K, double *ALPHA, double *A, int *LDA, double *BETA, double *C, int *LDC);
-extern void dgemm_(char *transa, char *transb, int *l, int *n, int *m, double *alpha, const void *a, int *lda, void *b, int *ldb, double *beta, void *c, int *ldc);
-
-/****** LAPACK  ******/
-
-// computes Cholesky factorization of positive definite matrix
-extern void dpotrf_(char *uplo, int *n, double *X, int *lda, int *info);
-
-// computes the inverse of a real symmetric positive definite
-// matrix  using the Cholesky factorization
-extern void dpotri_(char *uplo, int *n, double *X, int *lda, int *info);
-
-// computes solution to a real system of linear equations with symmetrix matrix
-extern void dsysv_(char *uplo, int *n, int *nrhs, double *A, int *lda, int *ipiv, double *B, int *ldb, double *work, int *lwork, int *info);
-
-// computes solution to a real system of linear equations with positive definite matrix
-extern void dposv_(char *uplo, int *n, int *nrhs, double *A, int *lda, double *B, int *ldb, int *info);
 /**** Declarations of functions per file ****/
 
 /* allocate_free.c */
@@ -170,7 +124,6 @@ void freeMemory(void);
 void initializeBabSolution(void);
 int Init_PQ(void);
 int Bab_Init(int argc, char **argv, int rank);
-double evaluateSolution(int *sol);
 int updateSolution(int *x);
 void master_Bab_Main(Message message, int source, int *busyWorkers, int numbWorkers, int *numbFreeWorkers, MPI_Datatype BabSolutiontype);
 void worker_Bab_Main(MPI_Datatype BabSolutiontype, MPI_Datatype BabNodetype, int rank);
@@ -204,7 +157,6 @@ void createSubproblem(BabNode *node, Problem *SP, Problem *PP);
 double getFixedValue(BabNode *node, Problem *SP);
 
 /* heap.c */
-double Bab_LBGet(void);                              // returns global lower bound
 int Bab_numEvalNodes(void);                          // returns number of evaluated nodes
 void Bab_incEvalNodes(void);                         // increment the number of evaluated nodes
 int isPQEmpty(void);                                 // checks if queue is empty
@@ -218,7 +170,6 @@ Heap *Init_Heap(int size);                           // allocates space for heap
 /* heuristic.c */
 double runHeuristic(Problem *P0, Problem *P, BabNode *node, int *x);
 double mc_1opt(int *x, Problem *P0);
-int update_best(int *xbest, int *xnew, double *best, Problem *P0);
 
 /* ipm_mc_pk.c */
 void ipm_mc_pk(double *L, int n, double *X, double *phi, int print);

@@ -3,8 +3,6 @@
 # A test script for comparing solver output with expected output for a given problem instance.
 # Usage: ./test.sh biqbin instance expected_output params
 
-set -e
-
 if [ "$#" -ne 4 ]; then
     echo "Illegal number of parameters"
     echo "Usage:"
