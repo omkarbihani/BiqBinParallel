@@ -130,6 +130,13 @@ void pre_heuristic_computes()
     }
 }
 
+/// @brief Called where GW_heuristic was called in the original biqbin, if python_GW_override was not overridden still functions like the original.
+/// @param P0 is the original Problem *SP
+/// @param P  current subproblem Problem *PP
+/// @param node current branch and bound node
+/// @param x stores the best solution nodes found the by the heuristic function
+/// @param num GW receives this, it is set to SP->n or the number of vertices in the graph
+/// @return best lower bound of the current subproblem found by the heuristic used
 double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num)
 {
     if (python_GW_override && !python_GW_override.is_none())
@@ -175,6 +182,9 @@ double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num
     return GW_heuristic(P0, P, node, x, num);
 }
 
+/// @brief Called instead of readData of the original biqbin which could only take edge weight lists in a specific format
+/// @param instance path to the instance file
+/// @return 0 if parsing was successful 1 if not
 int wrapped_read_data(const char *instance)
 {
     if (py_read_data_override && !py_read_data_override.is_none())
