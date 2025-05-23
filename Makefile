@@ -23,7 +23,7 @@ BINS =  biqbin
 
 # BiqBin objects
 BBOBJS = $(OBJ)/bundle.o $(OBJ)/allocate_free.o $(OBJ)/bab_functions.o \
-	 	$(OBJ)/bounding.o $(OBJ)/cutting_planes.o \
+	 	 $(OBJ)/bounding.o $(OBJ)/cutting_planes.o \
          $(OBJ)/evaluate.o $(OBJ)/heap.o $(OBJ)/ipm_mc_pk.o \
          $(OBJ)/heuristic.o $(OBJ)/main.o $(OBJ)/operators.o \
          $(OBJ)/process_input.o $(OBJ)/qap_simulated_annealing.o \
@@ -66,12 +66,13 @@ clean :
 clean-output:
 	rm -rf rudy/*.output*
 	rm -rf tests/rudy/*.output*
+	rm -rf tests/qubo/*.output*
 
 	
 # TESTS
 TEST_ALL_60 = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec ./$(BINS)" \
+			"mpiexec -n 8 ./$(BINS)" \
 			tests/rudy/g05_60.$$i \
 			tests/rudy/g05_60.$$i-expected_output \
 			params ;\
@@ -79,7 +80,7 @@ TEST_ALL_60 = 	for i in $(shell seq 0 9); do \
 
 TEST_ALL_80 = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec ./$(BINS)" \
+			"mpiexec -n 8 ./$(BINS)" \
 			tests/rudy/g05_80.$$i \
 			tests/rudy/g05_80.$$i-expected_output \
 			params ;\
@@ -87,7 +88,7 @@ TEST_ALL_80 = 	for i in $(shell seq 0 9); do \
 
 TEST_ALL_100 = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec ./$(BINS)" \
+			"mpiexec -n 8 ./$(BINS)" \
 			tests/rudy/g05_100.$$i \
 			tests/rudy/g05_100.$$i-expected_output \
 			params ;\
@@ -96,7 +97,7 @@ TEST_ALL_100 = 	for i in $(shell seq 0 9); do \
 # TESTS
 TEST_ALL_60_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec python3 run_example.py" \
+			"mpiexec -n 8 python3 run_example.py" \
 			tests/rudy/g05_60.$$i \
 			tests/rudy/g05_60.$$i-expected_output \
 			params ;\
@@ -104,7 +105,7 @@ TEST_ALL_60_PYTHON = 	for i in $(shell seq 0 9); do \
 
 TEST_ALL_80_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec python3 run_example.py" \
+			"mpiexec -n 8 python3 run_example.py" \
 			tests/rudy/g05_80.$$i \
 			tests/rudy/g05_80.$$i-expected_output \
 			params ;\
@@ -112,11 +113,17 @@ TEST_ALL_80_PYTHON = 	for i in $(shell seq 0 9); do \
 
 TEST_ALL_100_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec python3 run_example.py" \
+			"mpiexec -n 8 python3 run_example.py" \
 			tests/rudy/g05_100.$$i \
 			tests/rudy/g05_100.$$i-expected_output \
 			params ;\
 	done
+
+# test-qubos:
+# 	@for file in tests/qubo/*.pkl; do \
+# 		mpiexec -n 1 python3 run_qubo_tests.py $$file params || exit $$?; \
+# 	done
+
 
 test-all:
 	$(TEST_ALL_60)

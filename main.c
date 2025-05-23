@@ -263,6 +263,9 @@ int wrapped_main(int argc, char **argv) {
     free(heap);
 
     // MPI finish
+    MPI_Type_free(&BabSolutiontype);  // free when done
+    MPI_Type_free(&BabNodetype);  // free when done
+
     MPI_Finalize();
 
     return 0;
