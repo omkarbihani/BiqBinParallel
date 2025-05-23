@@ -1,0 +1,33 @@
+Input file: rudy/g05_100.7
+
+Graph has 100 vertices and 2475 edges.
+BiqBin parameters:
+    init_bundle_iter = 5
+     max_bundle_iter = 15
+          triag_iter = 5
+           pent_iter = 5
+           hept_iter = 5
+      max_outer_iter = 20
+          extra_iter = 10
+    violated_TriIneq = 0.050000
+             TriIneq = 1000
+      adjust_TriIneq = 1
+            PentIneq = 5000
+           HeptaIneq = 5000
+         Pent_Trials = 60
+        Hepta_Trials = 50
+        include_Pent = 1
+       include_Hepta = 1
+                root = 0
+            use_diff = 1
+          time_limit = 0
+   branchingStrategy = 1
+
+Nodes = 91
+Root node bound = 1440.09
+Maximum value = 1431
+Solution = ( 1 2 5 6 7 9 10 13 14 15 16 17 20 21 25 26 30 33 34 35 37 40 41 42 45 47 50 51 54 61 62 63 65 70 72 73 74 77 78 81 82 84 85 86 88 90 95 96 97 98 )
+Time = 11.82 s
+
+Number of cores: 8
+Maximum number of workers used: 7
