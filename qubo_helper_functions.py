@@ -49,3 +49,25 @@ def maxcut_solution_to_qubo_solution(_x: np.ndarray, n_mc: int):
     x_mc_sol
     y = 1/2*(x_mc_sol+1)[1:]
     return y
+
+
+def read_maxcut_input(filename):
+    with open(filename, 'r') as f:
+        # Read number of vertices and edges
+        num_vertices, num_edges = map(int, f.readline().split())
+
+        # Allocate adjacency matrix as a contiguous array (row-major)
+        adj_matrix = np.zeros(
+            (num_vertices, num_vertices), dtype=np.float64)
+
+        # Read edges
+        for _ in range(num_edges):
+            i, j, weight = f.readline().split()
+            i, j = int(i) - 1, int(j) - 1  # Convert to zero-based indexing
+            weight = float(weight)
+
+            adj_matrix[i, j] = weight
+            adj_matrix[j, i] = weight  # Since the graph is undirected
+
+        # Create the MaxCutInputData struct
+        return adj_matrix
