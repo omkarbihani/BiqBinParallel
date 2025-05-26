@@ -193,7 +193,7 @@ np::ndarray read_data_python(const char *instance)
 
     double *adj;
     int adj_N;
-    adj = readData(instance, &adj_N);
+    adj = readData(instance, &adj_N); // possible mem leak ???
     return np::from_data(adj, np::dtype::get_builtin<double>(),
                                      p::make_tuple(adj_N, adj_N),
                                      p::make_tuple(sizeof(double) * adj_N, sizeof(double)),
