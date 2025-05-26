@@ -63,8 +63,8 @@ typedef struct BabNode
 } BabNode;
 
 EXTERN_C double runHeuristic_unpacked(double *P0_L, int P0_N , double *P_L, int P_N, int *node_xfixed, int *node_sol_X, int *x);
-EXTERN_C int wrapped_main(int argc, char **argv);
-EXTERN_C double* readData(const char *instance);
+EXTERN_C int wrapped_main(int argc, const char **argv);
+EXTERN_C double* readData(const char *instance, int *adj_N);
 EXTERN_C int read_data_BQP(const char *instance);
 EXTERN_C double Bab_LBGet(void);                              // returns global lower bound
 EXTERN_C int update_best(int *xbest, int *xnew, double *best, int P0_N);

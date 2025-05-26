@@ -15,7 +15,7 @@ extern FILE *output;
 
 int num_workers_used = 0;
 
-int wrapped_main(int argc, char **argv) {
+int wrapped_main(int argc, const char **argv) {
 
     /*******************************************************
     *********** BRANCH & BOUND: PARALLEL ALGORITHM ********

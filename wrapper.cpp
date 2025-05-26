@@ -14,6 +14,10 @@
 
 #include "wrapper.h"
 
+
+namespace py = boost::python;
+
+
 /* biqbin's global variables from global_var.h */
 extern Problem *SP;
 extern Problem *PP;
@@ -83,27 +87,33 @@ np::ndarray get_selected_nodes_np_array()
 /// @brief Run the solver, retrieve the solution
 /// @param py_args argv in a Python string list ["biqbin", "graph_instance_path", "parameters_path"]
 /// @return dictionary of "max_val" value of maximum cut and "solution" vertices
-py::dict run_py(py::list py_args)
+py::dict run_py(const char * prog_name, const char *problem_instance_name, const char *params_file_name)
 {
-    int argc = len(py_args);
-    // + 1 so we can do argv[argc] = nullptr
-    char **argv = new char *[argc + 1];
+    const char* argv[3];
+    argv[0] = prog_name;
+    argv[1] = problem_instance_name;
+    argv[2] = params_file_name;
 
-    for (int i = 0; i < argc; ++i)
-    {
-        std::string arg = py::extract<std::string>(py_args[i]);
-        argv[i] = strdup(arg.c_str());
-    }
-    argv[argc] = nullptr; // <-- sentinel
 
-    wrapped_main(argc, argv);
+    // int argc = len(py_args);
+    // // + 1 so we can do argv[argc] = nullptr
+    // char **argv = new char *[argc + 1];
 
-    // Free argv from memory
-    for (int i = 0; i < argc; ++i)
-    {
-        free(argv[i]);
-    }
-    delete[] argv;
+    // for (int i = 0; i < argc; ++i)
+    // {
+    //     std::string arg = py::extract<std::string>(py_args[i]);
+    //     argv[i] = strdup(arg.c_str());
+    // }
+    // argv[argc] = nullptr; // <-- sentinel
+
+    wrapped_main(3, argv);
+
+    // // Free argv from memory
+    // for (int i = 0; i < argc; ++i)
+    // {
+    //     free(argv[i]); // RK WHAT ????
+    // }
+    // delete[] argv;
 
     // Build result dictionary
     py::dict result_dict;
@@ -175,26 +185,51 @@ double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x)
 
 }
 
+
+//np::ndarray np_adj;
+
+np::ndarray read_data_python(const char *instance)
+{
+
+    double *adj;
+    int adj_N;
+    adj = readData(instance, &adj_N);
+    return np::from_data(adj, np::dtype::get_builtin<double>(),
+                                     p::make_tuple(adj_N, adj_N),
+                                     p::make_tuple(sizeof(double) * adj_N, sizeof(double)),
+                                     p::object());
+}
+
 /// @brief Called instead of readData of the original biqbin which could only take edge weight lists in a specific format
 /// @param instance path to the instance file
 /// @return 0 if parsing was successful 1 if not
-double* wrapped_read_data(const char *instance)
+double* wrapped_read_data(const char *instance, int *adj_N)
 {
-    if (py_read_data_override && !py_read_data_override.is_none())
-    {
-        // Call Python function and expect a NumPy array
-        np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override(instance));
+    np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override(instance));
+    *adj_N = np_adj.shape(0);
 
-        int n = np_adj.shape(0);
-        BabPbSize = n - 1;
-
-        double* adj;
-        alloc_matrix(adj, n, double);
-        std::memcpy(adj, np_adj.get_data(), sizeof(double) * n * n);
-        return adj;
-    }
-    return readData(instance);
+    return reinterpret_cast<double*>(np_adj.get_data());
 }
+
+//     free(Adj);
+
+
+
+//     if (py_read_data_override && !py_read_data_override.is_none())
+//     {
+//         // Call Python function and expect a NumPy array
+//         np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override(instance));
+
+//         int n = np_adj.shape(0);
+//         BabPbSize = n - 1;
+
+//         double* adj;
+//         alloc_matrix(adj, n, double);
+//         std::memcpy(adj, np_adj.get_data(), sizeof(double) * n * n);
+//         return adj;
+//     }
+//     return readData(instance);
+// }
 
 void clean_python_references(void)
 {
@@ -212,6 +247,7 @@ BOOST_PYTHON_MODULE(solver)
     def("read_bqp_data", &read_data_BQP);
     def("run", &run_py);
     def("default_heuristic", &run_heuristic_python);
+    def("default_read_data", &read_data_python);
     def("get_rank", &get_rank);
 }
 

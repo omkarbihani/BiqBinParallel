@@ -9,7 +9,7 @@
 #endif
 
 EXTERN_C double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x);
-EXTERN_C double* wrapped_read_data(const char *instance);
+EXTERN_C double* wrapped_read_data(const char *instance, int *adj_N);
 EXTERN_C void clean_python_references(void);
 EXTERN_C void copy_solution(void);
 EXTERN_C void record_time(double time_taken);

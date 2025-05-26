@@ -72,12 +72,15 @@ int processCommandLineArguments(int argc, char **argv, int rank) {
 
         // Read the input file instance
         double *adj;
+        int adj_N;
         #ifdef PURE_C
-            adj = readData(argv[1]);
+            adj = readData(argv[1], &adj_N);
+            read_error = process_adj_matrix(adj, adj_N);
+            free(adj);
         #else
-            adj = wrapped_read_data(argv[1]);
+            adj = wrapped_read_data(argv[1], &adj_N);
+            read_error = process_adj_matrix(adj, adj_N);
         #endif
-        read_error = process_adj_matrix(adj);
 
         // bcast first read_error then whole graph
         MPI_Bcast(&read_error, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -188,7 +191,7 @@ int readParameters(const char *path, int rank) {
 
 
 /*** read graph file ***/
-double* readData(const char *instance) {
+double* readData(const char *instance, int *adj_N) {
 
     // open input file
     FILE *f = fopen(instance, "r");
@@ -220,6 +223,7 @@ double* readData(const char *instance) {
     // Adjacency matrix Adj: allocate and set to 0 
     double *Adj;
     alloc_matrix(Adj, num_vertices, double);
+    *adj_N = num_vertices; // RK
 
     for (int edge = 0; edge < num_edges; ++edge) {
         
@@ -234,7 +238,7 @@ double* readData(const char *instance) {
     }   
 
     fclose(f);
-    BabPbSize = num_vertices - 1; // num_vertices - 1;
+    // RK BabPbSize = num_vertices - 1; // num_vertices - 1;
     return Adj;
 }
 
@@ -242,9 +246,12 @@ double* readData(const char *instance) {
 /// @param Adj Adjacency matrix of the instance
 /// @param num_vertices number of vertices in the graph
 /// @return 0 if success 1 if fail
-int process_adj_matrix(double* Adj) {
-    int num_vertices = BabPbSize + 1;
+int process_adj_matrix(double* Adj, int num_vertices) {
+    //RK int num_vertices = BabPbSize + 1;
     // allocate memory for original problem SP and subproblem PP
+
+    BabPbSize = num_vertices - 1; // RK // num_vertices - 1;
+
     alloc(SP, Problem);
     alloc(PP, Problem);
 
@@ -321,7 +328,7 @@ int process_adj_matrix(double* Adj) {
     dcopy_(&N2, SP->L, &incx, PP->L, &incy);
 
 
-    free(Adj);
+ // RK   free(Adj);
     free(Adje);
     free(tmp);  
 
