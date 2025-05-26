@@ -1,0 +1,7 @@
+**/*.output*
+*.so
+__pycache__/
+Obj/
+biqbin
+.vscode/
+
