@@ -11,6 +11,7 @@
 
 #include "biqbin_cpp_api.h"
 #include "blas_laplack.h"
+
 #include "wrapper.h"
 
 /* biqbin's global variables from global_var.h */
@@ -33,6 +34,7 @@ namespace p = boost::python;
 /* final solution */
 std::vector<int> selected_nodes;
 double spent_time;
+int rank;
 
 // Global Python override function (if any)
 py::object python_heuristic_override;
@@ -51,6 +53,14 @@ void set_heuristic_override(py::object func)
 void set_read_data_override(py::object func)
 {
     py_read_data_override = func;
+}
+
+void set_rank(int r) {
+    rank = r;
+}
+
+int get_rank() {
+    return rank;
 }
 
 /// @brief Creates a numpy array of the solution, returned after biqbin is done solving
@@ -121,7 +131,6 @@ double run_heuristic_python(
     int * x = reinterpret_cast<int*>(x_array.get_data());
  
     return runHeuristic_unpacked(P0_L, P0_L_array.shape(0) , P_L, P_L_array.shape(0), xfixed, node_sol_X, x);
-
 }
 
 /// @brief Called where GW_heuristic was called in the original biqbin, if python_GW_override was not overridden still functions like the original.
@@ -131,9 +140,6 @@ double run_heuristic_python(
 /// @param x stores the best solution nodes found the by the heuristic function
 /// @param num GW receives this, it is set to SP->n or the number of vertices in the graph
 /// @return best lower bound of the current subproblem found by the heuristic used
-
-//extern int BabPbSize;
-
 double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x)
 {
 
@@ -172,33 +178,20 @@ double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x)
 /// @brief Called instead of readData of the original biqbin which could only take edge weight lists in a specific format
 /// @param instance path to the instance file
 /// @return 0 if parsing was successful 1 if not
-int wrapped_read_data(const char *instance)
+double* wrapped_read_data(const char *instance)
 {
     if (py_read_data_override && !py_read_data_override.is_none())
     {
-        // py_read_data_override(instance);
-        np::initialize();
-
         // Call Python function and expect a NumPy array
-        np::ndarray arr = py::extract<np::ndarray>(py_read_data_override(instance));
+        np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override(instance));
 
-        int n = arr.shape(0);
-        int m = arr.shape(1);
-
-        alloc(SP, Problem);
-        alloc(PP, Problem);
-
-        SP->n = n;
-        PP->n = n;
+        int n = np_adj.shape(0);
         BabPbSize = n - 1;
-        // allocate memory for objective matrices for SP and PP
-        alloc_matrix(SP->L, SP->n, double);
-        alloc_matrix(PP->L, SP->n, double);
-        double *numpy_data = reinterpret_cast<double *>(arr.get_data());
-        std::memcpy(SP->L, numpy_data, n * m * sizeof(double));
-        std::memcpy(PP->L, numpy_data, n * m * sizeof(double));
 
-        return 0;
+        double* adj;
+        alloc_matrix(adj, n, double);
+        std::memcpy(adj, np_adj.get_data(), sizeof(double) * n * n);
+        return adj;
     }
     return readData(instance);
 }
@@ -212,7 +205,6 @@ void clean_python_references(void)
 // Python module exposure
 BOOST_PYTHON_MODULE(solver)
 {
-//    Py_Initialize();
     np::initialize();
 
     py::def("set_heuristic", &set_heuristic_override);
@@ -220,6 +212,7 @@ BOOST_PYTHON_MODULE(solver)
     def("read_bqp_data", &read_data_BQP);
     def("run", &run_py);
     def("default_heuristic", &run_heuristic_python);
+    def("get_rank", &get_rank);
 }
 
 /// @brief Copy the solution before memory is freed, so it can be retrieved in Python

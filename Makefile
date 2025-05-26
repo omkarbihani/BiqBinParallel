@@ -8,6 +8,7 @@ DOCKER_BUILD_PARAMS ?=
 
 # Directories
 OBJ = Obj
+OBJC = Objc
 
 # Compiler
 CC = mpicc
@@ -28,8 +29,16 @@ PYMOD_OUT = solver.so
 BINS =  biqbin
 
 # BiqBin objects
+BBOBJSC = $(OBJC)/bundle.o $(OBJC)/allocate_free.o $(OBJC)/bab_functions.o \
+	 	 $(OBJC)/bounding.o $(OBJC)/cutting_planes.o \
+         $(OBJC)/evaluate.o $(OBJC)/heap.o $(OBJC)/ipm_mc_pk.o \
+         $(OBJC)/heuristic.o $(OBJC)/main.o $(OBJC)/operators.o \
+         $(OBJC)/process_input.o $(OBJC)/qap_simulated_annealing.o \
+		 $(OBJC)/bqp_data_processing.o
+
+# BiqBin objects
 BBOBJS = $(OBJ)/bundle.o $(OBJ)/allocate_free.o $(OBJ)/bab_functions.o \
-	 	$(OBJ)/bounding.o $(OBJ)/cutting_planes.o \
+	 	 $(OBJ)/bounding.o $(OBJ)/cutting_planes.o \
          $(OBJ)/evaluate.o $(OBJ)/heap.o $(OBJ)/ipm_mc_pk.o \
          $(OBJ)/heuristic.o $(OBJ)/main.o $(OBJ)/operators.o \
          $(OBJ)/process_input.o $(OBJ)/qap_simulated_annealing.o \
@@ -49,15 +58,13 @@ CFLAGS = $(OPTI) -Wall -W -pedantic
 # Default rule is to create all binaries #
 all: clean $(BINS) $(PYMOD_OUT)
 
-
 	
 # TESTS
 TEST = 	./test.sh \
 			"mpiexec -n 8 ./$(BINS)" \
 			tests/rudy/g05_60.0 \
 			tests/rudy/g05_60.0-expected_output \
-			params ;\
-	done
+			params ;
 
 
 TEST_ALL_60 = 	for i in $(shell seq 0 9); do \
@@ -133,13 +140,14 @@ clean-output:
 
 # Clean rule #
 clean: clean-output
-	rm -rf $(BINS) $(OBJS) $(PYMOD_OUT)
-
+	rm -rf $(BINS) $(OBJS) $(PYMOD_OUT) $(BBOBJSC)
 
 # Rules for binaries
-$(BINS): $(OBJS)
-	$(CPP) -o $@ $^ $(INCLUDES) $(LIB) $(CFLAGS) $(LINALG)
+$(BINS): $(BBOBJSC)
+	$(CC) -o $@ $^ $(INCLUDES) $(LIB) $(CFLAGS) -DPURE_C $(LINALG)
 
+$(OBJC)/%.o: %.c
+	$(CC) $(CFLAGS) -DPURE_C $(INCLUDES) -c -o $@ $<
 # BiqBin code rules
 $(OBJ)/%.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
@@ -151,19 +159,13 @@ $(OBJ)/%.o: %.cpp
 $(PYMOD_OUT): $(OBJS)
 	$(CPP) -o $@ $^ -shared -fPIC $(INCLUDES) $(LIB) $(CFLAGS) $(LINALG) -Wl,--no-undefined
 
-
-
-
-
 test-all: clean-output
-	n/a
 	$(TEST_ALL_60)
 	$(TEST_ALL_80)
 	$(TEST_ALL_100)
 
 
 test: clean-output
-	n/a
 	$(TEST)
 
 test-python: clean-output

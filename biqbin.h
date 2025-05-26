@@ -186,6 +186,8 @@ void op_Bt(const Problem *P, double *X, const double *tt);
 void print_symmetric_matrix(double *Mat, int N);
 int processCommandLineArguments(int argc, char **argv, int rank);
 int readParameters(const char *path, int rank);
+int process_adj_matrix(double* Adj);
+
 
 /* qap_simuted_annealing.c */
 double qap_simulated_annealing(int *H, int k, double *X, int n, int *pent);

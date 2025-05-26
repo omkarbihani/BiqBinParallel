@@ -33,6 +33,9 @@ int wrapped_main(int argc, char **argv) {
     // get number of proccesses and corresponding ranks
     MPI_Comm_size(MPI_COMM_WORLD, &numbWorkers);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    #ifndef PURE_C
+    set_rank(rank);
+    #endif
     MPI_Status status;
 
     if (rank == 0)
@@ -246,8 +249,10 @@ int wrapped_main(int argc, char **argv) {
 
     /* Print results to the standard output and to the output file */
     if (rank == 0) {
+        #ifndef PURE_C
         copy_solution();
         record_time(MPI_Wtime() - TIME);
+        #endif
         printFinalOutput(stdout,Bab_numEvalNodes());
         printFinalOutput(output,Bab_numEvalNodes());
         fprintf(output, "Number of cores: %d\n", numbWorkers);

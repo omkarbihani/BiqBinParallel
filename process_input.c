@@ -18,7 +18,7 @@ extern int BabPbSize;
         if ((cond)) {\
             fprintf(stderr, "\nError: "#message"\n");\
             fclose(file);\
-            return 1;\
+            return NULL;\
         }
 
 
@@ -71,7 +71,13 @@ int processCommandLineArguments(int argc, char **argv, int rank) {
         }
 
         // Read the input file instance
-        read_error = wrapped_read_data(argv[1]);
+        double *adj;
+        #ifdef PURE_C
+            adj = readData(argv[1]);
+        #else
+            adj = wrapped_read_data(argv[1]);
+        #endif
+        read_error = process_adj_matrix(adj);
 
         // bcast first read_error then whole graph
         MPI_Bcast(&read_error, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -182,14 +188,14 @@ int readParameters(const char *path, int rank) {
 
 
 /*** read graph file ***/
-int readData(const char *instance) {
+double* readData(const char *instance) {
 
     // open input file
     FILE *f = fopen(instance, "r");
     if (f == NULL) {
         fflush(stdout);
         fprintf(stderr, "Error: problem opening input file %s\n", instance);
-        return 1;
+        return NULL;
     }
     printf("Input file: %s\n", instance);	
     fprintf(output,"Input file: %s\n", instance);
@@ -228,13 +234,22 @@ int readData(const char *instance) {
     }   
 
     fclose(f);
+    BabPbSize = num_vertices - 1; // num_vertices - 1;
+    return Adj;
+}
 
+/// @brief Builds the main Problem L matrix allocates Problem SP and PP global variables
+/// @param Adj Adjacency matrix of the instance
+/// @param num_vertices number of vertices in the graph
+/// @return 0 if success 1 if fail
+int process_adj_matrix(double* Adj) {
+    int num_vertices = BabPbSize + 1;
     // allocate memory for original problem SP and subproblem PP
     alloc(SP, Problem);
     alloc(PP, Problem);
 
     // size of matrix L
-    SP->n = num_vertices;                 
+    SP->n = num_vertices; // num vertices
 
     // allocate memory for objective matrices for SP and PP
     alloc_matrix(SP->L, SP->n, double);
@@ -243,7 +258,6 @@ int readData(const char *instance) {
 
     // IMPORTANT: last node is fixed to 0
     // --> BabPbSize is one less than the size of problem SP
-    BabPbSize = SP->n - 1; // num_vertices - 1;
     PP->n = SP->n;
     
 
