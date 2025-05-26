@@ -89,31 +89,10 @@ np::ndarray get_selected_nodes_np_array()
 /// @return dictionary of "max_val" value of maximum cut and "solution" vertices
 py::dict run_py(const char * prog_name, const char *problem_instance_name, const char *params_file_name)
 {
-    const char* argv[3];
-    argv[0] = prog_name;
-    argv[1] = problem_instance_name;
-    argv[2] = params_file_name;
-
-
-    // int argc = len(py_args);
-    // // + 1 so we can do argv[argc] = nullptr
-    // char **argv = new char *[argc + 1];
-
-    // for (int i = 0; i < argc; ++i)
-    // {
-    //     std::string arg = py::extract<std::string>(py_args[i]);
-    //     argv[i] = strdup(arg.c_str());
-    // }
-    // argv[argc] = nullptr; // <-- sentinel
+    const char* argv[3] = {prog_name, problem_instance_name, params_file_name};
 
     wrapped_main(3, argv);
 
-    // // Free argv from memory
-    // for (int i = 0; i < argc; ++i)
-    // {
-    //     free(argv[i]); // RK WHAT ????
-    // }
-    // delete[] argv;
 
     // Build result dictionary
     py::dict result_dict;
