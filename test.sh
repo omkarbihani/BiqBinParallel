@@ -61,5 +61,6 @@ if [[ "$output_filtered" == "$expected_output_filtered" ]]; then
     echo "O.K. Max val diff = ${max_val_diff}; Node diff = ${node_diff}; Root bound diff = ${root_node_bound_diff} Time diff = ${time_diff}s" 
 else
     echo "Failed!"
+    echo "Max val diff = ${max_val_diff}; Node diff = ${node_diff}; Root bound diff = ${root_node_bound_diff} Time diff = ${time_diff}s" 
     diff <(echo "$output_filtered") <(echo "$expected_output_filtered")
 fi

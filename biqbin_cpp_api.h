@@ -62,12 +62,12 @@ typedef struct BabNode
                           // Used for determining the next node in priority queue.
 } BabNode;
 
-EXTERN_C double GW_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num);
+EXTERN_C double runHeuristic_unpacked(double *P0_L, int P0_N , double *P_L, int P_N, int *node_xfixed, int *node_sol_X, int *x);
 EXTERN_C int wrapped_main(int argc, char **argv);
 EXTERN_C int readData(const char *instance);
 EXTERN_C int read_data_BQP(const char *instance);
 EXTERN_C double Bab_LBGet(void);                              // returns global lower bound
-EXTERN_C int update_best(int *xbest, int *xnew, double *best, Problem *P0);
+EXTERN_C int update_best(int *xbest, int *xnew, double *best, int P0_N);
 EXTERN_C double evaluateSolution(int *sol);
 EXTERN_C void abort_alloc_fail(int abort_code);
 

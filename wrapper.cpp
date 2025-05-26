@@ -18,8 +18,8 @@ extern Problem *SP;
 extern Problem *PP;
 extern BabSolution *BabSol;
 extern int BabPbSize;
-extern double *X;
-extern double *Z; // stores Cholesky decomposition: X = ZZ^T
+//extern double *X;
+//extern double *Z; // stores Cholesky decomposition: X = ZZ^T
 
 
 
@@ -28,21 +28,24 @@ using namespace boost::python;
 
 namespace py = boost::python;
 namespace np = boost::python::numpy;
+namespace p = boost::python;
 
 /* final solution */
 std::vector<int> selected_nodes;
 double spent_time;
 
 // Global Python override function (if any)
-py::object python_GW_override;
+py::object python_heuristic_override;
 py::object py_read_data_override;
 
 /// @brief set heuristic function from Python
 /// @param func 
-void set_GW_heuristic_override(py::object func)
+void set_heuristic_override(py::object func)
 {
-    python_GW_override = func;
+    python_heuristic_override = func;
 }
+
+
 /// @brief set instance reading function from Python
 /// @param func 
 void set_read_data_override(py::object func)
@@ -103,31 +106,22 @@ py::dict run_py(py::list py_args)
 
 
 
-/// @brief GW_heuristic contains some necessary execution that needs to be run regardless of used heuristic, 
-/// should probably be copied into run_heuristic function rather
-void pre_heuristic_computes()
+
+double run_heuristic_python(
+    const np::ndarray & P0_L_array, 
+    const np::ndarray & P_L_array,
+    const np::ndarray & xfixed_array,
+    const np::ndarray & node_sol_X_array,
+    const np::ndarray & x_array)
 {
-    /* GW necesities for upper bound computation */
-    int n = PP->n;
-    int inc = 1;
-    char UPLO = 'L';
-    int info = 0;
-    int nn = n * n;
+    double * P0_L = reinterpret_cast<double*>(P0_L_array.get_data());
+    double * P_L = reinterpret_cast<double*>(P_L_array.get_data());
+    int * xfixed = reinterpret_cast<int*>(xfixed_array.get_data());
+    int * node_sol_X = reinterpret_cast<int*>(node_sol_X_array.get_data());
+    int * x = reinterpret_cast<int*>(x_array.get_data());
+ 
+    return runHeuristic_unpacked(P0_L, P0_L_array.shape(0) , P_L, P_L_array.shape(0), xfixed, node_sol_X, x);
 
-    // Z = X
-    dcopy_(&nn, X, &inc, Z, &inc);
-
-    // compute Cholesky factorization
-    dpotrf_(&UPLO, &n, Z, &n, &info);
-
-    // set lower triangle of Z to zero
-    for (int i = 0; i < n; ++i)
-    {
-        for (int j = 0; j < i; ++j)
-        {
-            Z[j + i * n] = 0.0;
-        }
-    }
 }
 
 /// @brief Called where GW_heuristic was called in the original biqbin, if python_GW_override was not overridden still functions like the original.
@@ -137,49 +131,42 @@ void pre_heuristic_computes()
 /// @param x stores the best solution nodes found the by the heuristic function
 /// @param num GW receives this, it is set to SP->n or the number of vertices in the graph
 /// @return best lower bound of the current subproblem found by the heuristic used
-double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x, int num)
+
+//extern int BabPbSize;
+
+double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x)
 {
-    if (python_GW_override && !python_GW_override.is_none())
-    {
-        pre_heuristic_computes();
-        std::vector<int> sol(P0->n - 1);
 
-        double best_value = - 1e+9; // best lower bound found
+//    return GW_heuristic(P0->L, P0->n, P->L, P->n, node->xfixed, node->sol.X, P0->n, sol);
 
-        /* convert to numpy arrays */
-        // Subproblems L matrix
-        np::ndarray np_subL = np::from_data(
-            P->L, np::dtype::get_builtin<double>(),
-            py::make_tuple(P->n, P->n),
-            py::make_tuple(sizeof(double) * P->n, sizeof(double)),
-            py::object());
+    np::ndarray P0_L_array = np::from_data(P0->L, np::dtype::get_builtin<double>(),
+                                     p::make_tuple(P0->n, P0->n),
+                                     p::make_tuple(sizeof(double) * P0->n, sizeof(double)),
+                                     p::object());
 
-        // Call Python heuristics, heuristic solution should be stored in np_temp_x!
-        np::ndarray np_temp_x = boost::python::extract<np::ndarray>(python_GW_override(np_subL));
+    np::ndarray P_L_array = np::from_data(P->L, np::dtype::get_builtin<double>(),
+                                     p::make_tuple(P->n, P->n),
+                                     p::make_tuple(sizeof(double) * P->n, sizeof(double)),
+                                     p::object());
 
-        // Bellow is taken from GW as well, it works the same as GW
-        // store local cut temp_x into global cut sol
-        int index = 0;
-        for (int i = 0; i < P0->n - 1; ++i)
-        {
-            if (node->xfixed[i]) {
-                sol[i] = node->sol.X[i];
-            }
-            else
-            {
-                int value = boost::python::extract<int>(np_temp_x[index]);
-                sol[i] = (value + 1) / 2;
-                ++index;
-            }
-        }
-        // Update the x solution from temp solution sol, if we found better
-        update_best(x, sol.data(), &best_value, P0);
+    np::ndarray xfixed_array = np::from_data(node->xfixed, np::dtype::get_builtin<int>(),
+                                     p::make_tuple(P0->n-1),
+                                     p::make_tuple(sizeof(int)),
+                                     p::object());
+    
+    np::ndarray sol_X_array = np::from_data(node->sol.X, np::dtype::get_builtin<int>(),
+                                     p::make_tuple(P0->n-1),
+                                     p::make_tuple(sizeof(int)),
+                                     p::object());
 
-        return best_value;
-    }
+    np::ndarray x_array = np::from_data(x, np::dtype::get_builtin<int>(),
+                                     p::make_tuple(BabPbSize),
+                                     p::make_tuple(sizeof(int)),
+                                     p::object());
 
-    // Default C++ fallback
-    return GW_heuristic(P0, P, node, x, num);
+//    std::cout << "P" << std::endl;
+    return p::extract<double>(python_heuristic_override(P0_L_array, P_L_array, xfixed_array, sol_X_array, x_array));
+
 }
 
 /// @brief Called instead of readData of the original biqbin which could only take edge weight lists in a specific format
@@ -219,19 +206,20 @@ int wrapped_read_data(const char *instance)
 void clean_python_references(void)
 {
     py_read_data_override = py::object(); // Clear the callback
-    python_GW_override = py::object();
+    python_heuristic_override = py::object();
 }
 
 // Python module exposure
 BOOST_PYTHON_MODULE(solver)
 {
-    Py_Initialize();
+//    Py_Initialize();
     np::initialize();
 
-    py::def("set_heuristic", &set_GW_heuristic_override);
+    py::def("set_heuristic", &set_heuristic_override);
     py::def("set_read_data", &set_read_data_override);
     def("read_bqp_data", &read_data_BQP);
     def("run", &run_py);
+    def("default_heuristic", &run_heuristic_python);
 }
 
 /// @brief Copy the solution before memory is freed, so it can be retrieved in Python

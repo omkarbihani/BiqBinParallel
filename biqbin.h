@@ -169,7 +169,9 @@ Heap *Init_Heap(int size);                           // allocates space for heap
 
 /* heuristic.c */
 double runHeuristic(Problem *P0, Problem *P, BabNode *node, int *x);
-double mc_1opt(int *x, Problem *P0);
+double GW_heuristic(double *P0_L, int P0_N , double *P_L, int P_N, int *node_xfixed, int *node_sol_X, int *x, int num); // RK
+// RK double mc_1opt(int *x, Problem *P0);
+double mc_1opt(int *x, double *P_L, int P_N);
 
 /* ipm_mc_pk.c */
 void ipm_mc_pk(double *L, int n, double *X, double *phi, int print);
