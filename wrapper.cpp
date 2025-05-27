@@ -185,9 +185,35 @@ np::ndarray read_data_python(const char *instance)
 double* wrapped_read_data(const char *instance, int *adj_N)
 {
     np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override());
+
+    // Checks data validity
+    if (np_adj.get_dtype() != np::dtype::get_builtin<double>())
+    {
+        PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
+        p::throw_error_already_set();
+    }
+    if (np_adj.get_nd() != 2)
+    {
+        PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
+        p::throw_error_already_set();
+    }
+    if (np_adj.shape(0) != np_adj.shape(1)) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect shape, must be a square n x n array");
+        py::throw_error_already_set();
+    }
+    if (!(np_adj.get_flags() & np::ndarray::C_CONTIGUOUS))
+    {
+        PyErr_SetString(PyExc_TypeError, "Array must be row-major contiguous");
+        p::throw_error_already_set();
+    }
+
     *adj_N = np_adj.shape(0);
 
-    return reinterpret_cast<double*>(np_adj.get_data());
+    // adj needs to be copied to avoid Python garbage collector
+    double* adj;
+    alloc_matrix(adj, *adj_N, double);
+    std::memcpy(adj, np_adj.get_data(), sizeof(double) * (*adj_N) * (*adj_N));
+    return adj;
 }
 
 //     free(Adj);
@@ -209,7 +235,6 @@ double* wrapped_read_data(const char *instance, int *adj_N)
 //     }
 //     return readData(instance);
 // }
-
 void clean_python_references(void)
 {
     py_read_data_override = py::object(); // Clear the callback

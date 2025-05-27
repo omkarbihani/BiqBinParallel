@@ -128,15 +128,32 @@ TEST_ALL_100_PYTHON = 	for i in $(shell seq 0 9); do \
 			params ;\
 	done
 
-# test-qubos:
-# 	@for file in tests/qubo/*.pkl; do \
-# 		mpiexec -n 1 python3 run_qubo_tests.py $$file params || exit $$?; \
-# 	done
+
+TEST_QUBO = ./test.sh \
+			"mpiexec -n 3 python3 biqbin_qubo.py" \
+			tests/qubos/kcluster40_025_10_1.json \
+			tests/qubos/kcluster40_025_10_1.json-expected_output \
+			params \
+
+TEST_ALL_QUBO = for p in 25 50 75; do \
+		for a in 10 20 30; do \
+			for b in 1 2 3 4 5; do \
+				pp=$$(printf "%03d" $$p); \
+				aa=$$(printf "%d" $$a); \
+				bb=$$(printf "%d" $$b); \
+				./test.sh \
+				"mpiexec -n 3 python3 biqbin_qubo.py" \
+				tests/qubos/kcluster40_$${pp}_$${aa}_$${bb}.json \
+				tests/qubos/kcluster40_$${pp}_$${aa}_$${bb}.json-expected_output \
+				params ;\
+			done ;\
+		done ;\
+	done
 
 clean-output:
 	rm -f rudy/*.output*
 	rm -f tests/rudy/*.output*
-	rm -f tests/qubo/*.output*
+	rm -f tests/qubos/*.output*
 
 # Clean rule #
 clean: clean-output
@@ -175,6 +192,12 @@ test-all-python: clean-output
 	$(TEST_ALL_60_PYTHON)
 	$(TEST_ALL_80_PYTHON)
 	$(TEST_ALL_100_PYTHON)
+
+test-qubo: clean-output
+	$(TEST_QUBO)
+
+test-all-qubo:
+	$(TEST_ALL_QUBO)
 
 docker: 
 	docker build $(DOCKER_BUILD_PARAMS) --progress=plain -t $(IMAGE):$(TAG)  . 
