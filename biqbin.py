@@ -12,9 +12,9 @@ class BiqbinSolver(Solver):
 
 if __name__ == '__main__':
 
-    _, problem_instance_file_name, params = sys.argv
+    script_name, problem_instance_file_name, params = sys.argv
 
-    solver = BiqbinSolver(problem_instance_file_name, params)
+    solver = BiqbinSolver(script_name, problem_instance_file_name, params)
     result = solver.run()
     
     #  We need to expose node ID, so we know if we are on master !!!

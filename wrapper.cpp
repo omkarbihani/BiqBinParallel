@@ -184,7 +184,7 @@ np::ndarray read_data_python(const char *instance)
 /// @return 0 if parsing was successful 1 if not
 double* wrapped_read_data(const char *instance, int *adj_N)
 {
-    np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override(instance));
+    np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override());
     *adj_N = np_adj.shape(0);
 
     return reinterpret_cast<double*>(np_adj.get_data());
