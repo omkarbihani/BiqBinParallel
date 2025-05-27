@@ -103,9 +103,6 @@ py::dict run_py(const char * prog_name, const char *problem_instance_name, const
 }
 
 
-
-
-
 double run_heuristic_python(
     const np::ndarray & P0_L_array, 
     const np::ndarray & P_L_array,
@@ -182,7 +179,7 @@ np::ndarray read_data_python(const char *instance)
 /// @brief Called instead of readData of the original biqbin which could only take edge weight lists in a specific format
 /// @param instance path to the instance file
 /// @return 0 if parsing was successful 1 if not
-double* wrapped_read_data(const char *instance, int *adj_N)
+void wrapped_read_data()
 {
     np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override());
 
@@ -207,14 +204,20 @@ double* wrapped_read_data(const char *instance, int *adj_N)
         p::throw_error_already_set();
     }
 
-    *adj_N = np_adj.shape(0);
-
-    // adj needs to be copied to avoid Python garbage collector
-    double* adj;
-    alloc_matrix(adj, *adj_N, double);
-    std::memcpy(adj, np_adj.get_data(), sizeof(double) * (*adj_N) * (*adj_N));
-    return adj;
+    process_adj_matrix(reinterpret_cast<double*>(np_adj.get_data()),
+                       np_adj.shape(0));
 }
+
+    //*adj_N = np_adj.shape(0);
+
+    //return reinterpret_cast<double*>(np_adj.get_data());
+
+    // // adj needs to be copied to avoid Python garbage collector
+    // double* adj;
+    // alloc_matrix(adj, *adj_N, double);
+    // std::memcpy(adj, np_adj.get_data(), sizeof(double) * (*adj_N) * (*adj_N));
+    // return adj;
+//}
 
 //     free(Adj);
 
@@ -257,7 +260,7 @@ BOOST_PYTHON_MODULE(solver)
 
 /// @brief Copy the solution before memory is freed, so it can be retrieved in Python
 void copy_solution() {
-    for (int i = 0; i < BabPbSize; ++i)
+    for (int i = 0; i < BabPbSize; ++i) // RK I need to you Beno to explain me this !!!
     {
         if (BabSol->X[i] == 1)
         {

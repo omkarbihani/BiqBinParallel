@@ -1,16 +1,13 @@
 import sys
 
-from biqbin_base import QUBOSolver, DataGetterJson
-
+from biqbin_base import MaxCutSolver
 
 
 if __name__ == '__main__':
 
     _, problem_instance_file_name, params = sys.argv
 
-    data_getter = DataGetterJson(problem_instance_file_name)
-
-    solver = QUBOSolver(data_getter=data_getter, params=params)
+    solver = MaxCutSolver(problem_instance_file_name, params)
     result = solver.run()
     
     #  We need to expose node ID, so we know if we are on master !!!
@@ -18,3 +15,5 @@ if __name__ == '__main__':
     if rank == 0:
         print(f"{rank = }")
         print(result)
+
+

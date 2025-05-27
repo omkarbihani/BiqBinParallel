@@ -93,20 +93,20 @@ TEST_ALL_100 = 	for i in $(shell seq 0 9); do \
 
 # TESTS
 TEST_PYTHON = ./test.sh \
-			"mpiexec -n 3 python3 biqbin.py" \
+			"mpiexec -n 3 python3 biqbin_maxcut.py" \
 			tests/rudy/g05_60.0 \
 			tests/rudy/g05_60.0-expected_output \
 			params \
 
 TEST_PYTHON_HEURISTIC = ./test.sh \
-			"mpiexec -n 3 python3 biqbin.py" \
+			"mpiexec -n 3 python3 biqbin_maxcut.py" \
 			tests/rudy/g05_60.0 \
 			tests/rudy/g05_60.0-expected_output \
 			params \
 
 TEST_ALL_60_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec -n 8 python3 biqbin.py" \
+			"mpiexec -n 8 python3 biqbin_maxcut.py" \
 			tests/rudy/g05_60.$$i \
 			tests/rudy/g05_60.$$i-expected_output \
 			params ;\
@@ -114,7 +114,7 @@ TEST_ALL_60_PYTHON = 	for i in $(shell seq 0 9); do \
 
 TEST_ALL_80_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec -n 8 python3 biqbin.py" \
+			"mpiexec -n 8 python3 biqbin_maxcut.py" \
 			tests/rudy/g05_80.$$i \
 			tests/rudy/g05_80.$$i-expected_output \
 			params ;\
@@ -122,7 +122,7 @@ TEST_ALL_80_PYTHON = 	for i in $(shell seq 0 9); do \
 
 TEST_ALL_100_PYTHON = 	for i in $(shell seq 0 9); do \
 			./test.sh \
-			"mpiexec -n 8 python3 biqbin.py" \
+			"mpiexec -n 8 python3 biqbin_maxcut.py" \
 			tests/rudy/g05_100.$$i \
 			tests/rudy/g05_100.$$i-expected_output \
 			params ;\
@@ -185,18 +185,18 @@ test-all: clean-output
 test: clean-output
 	$(TEST)
 
-test-python: clean-output
+test-python-maxcut: clean-output
 	$(TEST_PYTHON)
 
-test-all-python: clean-output
+test-python-maxcut-all: clean-output
 	$(TEST_ALL_60_PYTHON)
 	$(TEST_ALL_80_PYTHON)
 	$(TEST_ALL_100_PYTHON)
 
-test-qubo: clean-output
+test-python-qubo: clean-output
 	$(TEST_QUBO)
 
-test-all-qubo:
+test-python-qubo-all:
 	$(TEST_ALL_QUBO)
 
 docker: 
