@@ -12,7 +12,7 @@ fi
 
 # Extract only the important lines for strict comparison
 extract_comparison_lines() {
-    grep -E '^(Maximum value =|Solution =)'
+    grep -E '^(Maximum value =|Solution =|Qubo Minimal Value =)'
 }
 
 # Extract informational lines only

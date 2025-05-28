@@ -45,19 +45,46 @@ class DataGetter(ABC):
 
 
 class DataGetterJson(DataGetter):
-    def __init__(self, filename):
+    """Reads qubo instance file, should be a json dictionary with "qubo" key
+    and a scipy sparse matrix as value.
+    """
+
+    def __init__(self, filename: str):
+        """Load data from json file and save the data and qubo
+
+        Args:
+            filename (str): path to file
+        """
         self.filename = filename
         with open(filename, "r") as f:
             self.qubo_info = json.load(f)
             self.qubo = self.___from_sparse(self.qubo_info["qubo"])
 
-    def problem_instance_name(self):
+    def problem_instance_name(self) -> str:
+        """Get the instance file path
+
+        Returns:
+            str: path to instance file
+        """
         return self.filename
 
-    def problem_instance(self):
+    def problem_instance(self) -> np.ndarray:
+        """Gets the qubo
+
+        Returns:
+            nd.ndarray: qubo in a numpy array
+        """
         return self.qubo
 
     def ___from_sparse(self, qubo_sparse):
+        """Converts qubo from sparse to regular form
+
+        Args:
+            qubo_sparse (dict): scipy sparse matrix of the qubo
+
+        Returns:
+            np.ndarray: qubo in regular form
+        """
         return sp.sparse.coo_matrix(
             (qubo_sparse['data'], (qubo_sparse['row'], qubo_sparse['col'])),
             shape=qubo_sparse['shape'], dtype='float'
@@ -72,12 +99,12 @@ class QUBOSolver(MaxCutSolver):
         super().__init__(data_getter.problem_instance_name(), params)
 
     def _qubo2maxcut(self, qubo: np.ndarray) -> np.ndarray:
-        """Convert QUBO to adjacency matrix that biqbin can read
+        """Convert qubo to adjacency matrix that biqbin can read
 
         Args:
             qubo (np.ndarray): qubo as 2d numpy array
         Returns:
-            2d np.ndarray: adjacency matrix of max cut problem
+            2d np.ndarray: adjacency matrix for max cut problem
         """
         q_sym = 1/2*(qubo.T + qubo)
         Qe_plus_c = -np.array([(np.sum(q_sym, 1))])
