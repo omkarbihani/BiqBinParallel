@@ -31,3 +31,4 @@ Time = 0.01 s
 
 Number of cores: 8
 Maximum number of workers used: 0
+Qubo Minimal Value = -337.0

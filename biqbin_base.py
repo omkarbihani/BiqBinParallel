@@ -2,13 +2,13 @@ __version__ = '1.0.0'
 
 from abc import ABC, abstractmethod
 import numpy as np
+import scipy as sp
 import json
 
-from solver import (run, set_heuristic, 
-                    default_heuristic, 
-                    get_rank, set_read_data, 
-                    default_read_data) 
-        
+from solver import (run, set_heuristic,
+                    default_heuristic,
+                    get_rank, set_read_data,
+                    default_read_data)
 
 
 class MaxCutSolver:
@@ -29,7 +29,7 @@ class MaxCutSolver:
 
     def run(self):
         return run(self.solver_name, self.problem_instance_name, self.params)
-    
+
     def get_rank(self) -> int:
         return get_rank()
 
@@ -46,9 +46,10 @@ class DataGetter(ABC):
 
 class DataGetterJson(DataGetter):
     def __init__(self, filename):
-         self.filename = filename
-         with open(filename, "r") as f:
-            self.qubo = np.array(json.load(f))
+        self.filename = filename
+        with open(filename, "r") as f:
+            self.qubo_info = json.load(f)
+            self.qubo = self.___from_sparse(self.qubo_info["qubo"])
 
     def problem_instance_name(self):
         return self.filename
@@ -56,11 +57,17 @@ class DataGetterJson(DataGetter):
     def problem_instance(self):
         return self.qubo
 
+    def ___from_sparse(self, qubo_sparse):
+        return sp.sparse.coo_matrix(
+            (qubo_sparse['data'], (qubo_sparse['row'], qubo_sparse['col'])),
+            shape=qubo_sparse['shape'], dtype='float'
+        ).todense().getA()
+
 
 class QUBOSolver(MaxCutSolver):
     solver_name = f'PyBiqBin-QUBO {__version__}'
 
-    def __init__(self, data_getter, params):
+    def __init__(self, data_getter: DataGetter, params: str):
         self.data_getter = data_getter
         super().__init__(data_getter.problem_instance_name(), params)
 
@@ -119,11 +126,10 @@ class QUBOSolver(MaxCutSolver):
         """
         result = super().run()
         if (self.get_rank() == 0):
-            qubo_solution, qubo_x = self._maxcut_solution2qubo_solution(result["solution"])
+            qubo_solution, qubo_x = self._maxcut_solution2qubo_solution(
+                result["solution"])
             qubo_min_value = self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x)
-            
+
             return {'maxcut': result, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'min_value': float(qubo_min_value)}}
         else:
             return None
-
-
