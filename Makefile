@@ -114,7 +114,7 @@ test-python-qubo-all-small:
 	./test_all_qubo.sh tests/qubos/40 8
 	./test_all_qubo.sh tests/qubos/80 8
 
-test-qubo-all-large:
+test-python-qubo-all-large:
 	./test_all_qubo.sh tests/qubos/100 8
 	./test_all_qubo.sh tests/qubos/120 8
 	./test_all_qubo.sh tests/qubos/140 8
