@@ -71,9 +71,9 @@ int processCommandLineArguments(int argc, char **argv, int rank) {
         }
 
         // Read the input file instance
-        double *adj;
-        int adj_N;
         #ifdef PURE_C
+            double *adj;
+            int adj_N;
             adj = readData(argv[1], &adj_N);
             read_error = process_adj_matrix(adj, adj_N);
             free(adj);

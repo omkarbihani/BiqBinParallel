@@ -15,7 +15,8 @@
 #include "wrapper.h"
 
 
-namespace py = boost::python;
+namespace np = boost::python::numpy;
+namespace p = boost::python;
 
 
 /* biqbin's global variables from global_var.h */
@@ -23,17 +24,6 @@ extern Problem *SP;
 extern Problem *PP;
 extern BabSolution *BabSol;
 extern int BabPbSize;
-//extern double *X;
-//extern double *Z; // stores Cholesky decomposition: X = ZZ^T
-
-
-
-/* solver functions */
-using namespace boost::python;
-
-namespace py = boost::python;
-namespace np = boost::python::numpy;
-namespace p = boost::python;
 
 /* final solution */
 std::vector<int> selected_nodes;
@@ -41,12 +31,12 @@ double spent_time;
 int rank;
 
 // Global Python override function (if any)
-py::object python_heuristic_override;
-py::object py_read_data_override;
+p::object python_heuristic_override;
+p::object py_read_data_override;
 
 /// @brief set heuristic function from Python
 /// @param func 
-void set_heuristic_override(py::object func)
+void set_heuristic_override(p::object func)
 {
     python_heuristic_override = func;
 }
@@ -54,7 +44,7 @@ void set_heuristic_override(py::object func)
 
 /// @brief set instance reading function from Python
 /// @param func 
-void set_read_data_override(py::object func)
+void set_read_data_override(p::object func)
 {
     py_read_data_override = func;
 }
@@ -73,7 +63,7 @@ np::ndarray get_selected_nodes_np_array()
 {
     // Create NumPy array to return to user
     np::dtype dtype = np::dtype::get_builtin<int>();
-    py::tuple shape = py::make_tuple(selected_nodes.size());
+    p::tuple shape = p::make_tuple(selected_nodes.size());
 
     // Allocate NumPy array
     np::ndarray result = np::zeros(shape, dtype);
@@ -87,7 +77,7 @@ np::ndarray get_selected_nodes_np_array()
 /// @brief Run the solver, retrieve the solution
 /// @param py_args argv in a Python string list ["biqbin", "graph_instance_path", "parameters_path"]
 /// @return dictionary of "max_val" value of maximum cut and "solution" vertices
-py::dict run_py(const char * prog_name, const char *problem_instance_name, const char *params_file_name)
+p::dict run_py(const char * prog_name, const char *problem_instance_name, const char *params_file_name)
 {
     const char* argv[3] = {prog_name, problem_instance_name, params_file_name};
 
@@ -95,7 +85,7 @@ py::dict run_py(const char * prog_name, const char *problem_instance_name, const
 
 
     // Build result dictionary
-    py::dict result_dict;
+    p::dict result_dict;
     result_dict["max_val"] = Bab_LBGet();
     result_dict["solution"] = get_selected_nodes_np_array();
     result_dict["time"] = spent_time;
@@ -156,10 +146,9 @@ double wrapped_heuristic(Problem *P0, Problem *P, BabNode *node, int *x)
                                      p::make_tuple(BabPbSize),
                                      p::make_tuple(sizeof(int)),
                                      p::object());
-
-//    std::cout << "P" << std::endl;
+    
+    // RK https://wiki.python.org/moin/boost.python/extract
     return p::extract<double>(python_heuristic_override(P0_L_array, P_L_array, xfixed_array, sol_X_array, x_array));
-
 }
 
 
@@ -170,11 +159,12 @@ np::ndarray read_data_python(const char *instance)
 
     double *adj;
     int adj_N;
-    adj = readData(instance, &adj_N); // possible mem leak ???
-    return np::from_data(adj, np::dtype::get_builtin<double>(),
-                                     p::make_tuple(adj_N, adj_N),
-                                     p::make_tuple(sizeof(double) * adj_N, sizeof(double)),
-                                     p::object());
+    adj = readData(instance, &adj_N); // RK possible mem leak ???
+    return np::from_data(adj, 
+        np::dtype::get_builtin<double>(),
+        p::make_tuple(adj_N, adj_N),
+        p::make_tuple(sizeof(double) * adj_N, sizeof(double)),
+        p::object());
 }
 
 /// @brief Called instead of readData of the original biqbin which could only take edge weight lists in a specific format
@@ -182,7 +172,7 @@ np::ndarray read_data_python(const char *instance)
 /// @return 0 if parsing was successful 1 if not
 void wrapped_read_data()
 {
-    np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override());
+    np::ndarray np_adj = p::extract<np::ndarray>(py_read_data_override());
 
     // Checks data validity
     if (np_adj.get_dtype() != np::dtype::get_builtin<double>())
@@ -197,7 +187,7 @@ void wrapped_read_data()
     }
     if (np_adj.shape(0) != np_adj.shape(1)) {
         PyErr_SetString(PyExc_ValueError, "Incorrect shape, must be a square n x n array"); // RK more informative message would be useful. 
-        py::throw_error_already_set();
+        p::throw_error_already_set();
     }
     if (!(np_adj.get_flags() & np::ndarray::C_CONTIGUOUS))
     {
@@ -209,40 +199,10 @@ void wrapped_read_data()
                        np_adj.shape(0));
 }
 
-    //*adj_N = np_adj.shape(0);
-
-    //return reinterpret_cast<double*>(np_adj.get_data());
-
-    // // adj needs to be copied to avoid Python garbage collector
-    // double* adj;
-    // alloc_matrix(adj, *adj_N, double);
-    // std::memcpy(adj, np_adj.get_data(), sizeof(double) * (*adj_N) * (*adj_N));
-    // return adj;
-//}
-
-//     free(Adj);
-
-
-
-//     if (py_read_data_override && !py_read_data_override.is_none())
-//     {
-//         // Call Python function and expect a NumPy array
-//         np::ndarray np_adj = py::extract<np::ndarray>(py_read_data_override(instance));
-
-//         int n = np_adj.shape(0);
-//         BabPbSize = n - 1;
-
-//         double* adj;
-//         alloc_matrix(adj, n, double);
-//         std::memcpy(adj, np_adj.get_data(), sizeof(double) * n * n);
-//         return adj;
-//     }
-//     return readData(instance);
-// }
 void clean_python_references(void)
 {
-    py_read_data_override = py::object(); // Clear the callback
-    python_heuristic_override = py::object();
+    py_read_data_override = p::object(); // Clear the callback
+    python_heuristic_override = p::object();
 }
 
 // Python module exposure
@@ -250,16 +210,16 @@ BOOST_PYTHON_MODULE(solver)
 {
     np::initialize();
 
-    py::def("set_heuristic", &set_heuristic_override);
-    py::def("set_read_data", &set_read_data_override);
-    def("read_bqp_data", &read_data_BQP);
-    def("run", &run_py);
-    def("default_heuristic", &run_heuristic_python);
-    def("default_read_data", &read_data_python);
-    def("get_rank", &get_rank);
+    p::def("set_heuristic", &set_heuristic_override);
+    p::def("set_read_data", &set_read_data_override);
+    p::def("read_bqp_data", &read_data_BQP);
+    p::def("run", &run_py);
+    p::def("default_heuristic", &run_heuristic_python);
+    p::def("default_read_data", &read_data_python);
+    p::def("get_rank", &get_rank);
 }
 
-/// @brief Copy the solution before memory is freed, so it can be retrieved in Python
+/// @brief Copy the solution before memory is freed, so it can be retrieved in Python // RK ???
 void copy_solution() {
     for (int i = 0; i < BabPbSize; ++i) // RK I need to you Beno to explain me this !!!
     {
