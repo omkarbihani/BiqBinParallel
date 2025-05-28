@@ -110,6 +110,7 @@ double run_heuristic_python(
     const np::ndarray & node_sol_X_array,
     const np::ndarray & x_array)
 {
+    // RK we should add checks for numpy array here ...
     double * P0_L = reinterpret_cast<double*>(P0_L_array.get_data());
     double * P_L = reinterpret_cast<double*>(P_L_array.get_data());
     int * xfixed = reinterpret_cast<int*>(xfixed_array.get_data());
@@ -186,16 +187,16 @@ void wrapped_read_data()
     // Checks data validity
     if (np_adj.get_dtype() != np::dtype::get_builtin<double>())
     {
-        PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
+        PyErr_SetString(PyExc_TypeError, "Incorrect array data type"); // RK more informative message would be useful. 
         p::throw_error_already_set();
     }
     if (np_adj.get_nd() != 2)
     {
-        PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions");
+        PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions"); // RK more informative message would be useful. 
         p::throw_error_already_set();
     }
     if (np_adj.shape(0) != np_adj.shape(1)) {
-        PyErr_SetString(PyExc_ValueError, "Incorrect shape, must be a square n x n array");
+        PyErr_SetString(PyExc_ValueError, "Incorrect shape, must be a square n x n array"); // RK more informative message would be useful. 
         py::throw_error_already_set();
     }
     if (!(np_adj.get_flags() & np::ndarray::C_CONTIGUOUS))
