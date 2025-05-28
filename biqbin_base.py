@@ -60,8 +60,8 @@ class DataGetterJson(DataGetter):
         """
         self.filename = filename
         with open(filename, "r") as f:
-            self.qubo_info = json.load(f)
-            self.qubo = self.___from_sparse(self.qubo_info["qubo"])
+            self.qubo_data = json.load(f)
+            self.qubo = self.___from_sparse(self.qubo_data["qubo"])
 
     def problem_instance_name(self) -> str:
         """Get the instance file path
@@ -78,6 +78,12 @@ class DataGetterJson(DataGetter):
             nd.ndarray: qubo in a numpy array
         """
         return self.qubo
+
+    def get_A(self):
+        if 'A' not in self.qubo_data:
+            print(f"Matrix A not in {self.filename}.")
+            exit(1)
+        return self.___from_sparse(self.qubo_data["A"])
 
     def ___from_sparse(self, qubo_sparse):
         """Converts qubo from sparse to regular form
@@ -158,8 +164,10 @@ class QUBOSolver(MaxCutSolver):
         if (self.get_rank() == 0):
             qubo_solution, qubo_x = self._maxcut_solution2qubo_solution(
                 result["solution"])
-            qubo_min_value = self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x)
 
-            return {'maxcut': result, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'min_value': float(qubo_min_value)}}
+            # optimum = self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x) this is just - mc solution
+
+            optimum = 0.5 * self.data_getter.get_A().dot(qubo_x).dot(qubo_x)
+            return {'maxcut': result, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'optimum': float(optimum)}}
         else:
             return None

@@ -57,6 +57,51 @@ int get_rank() {
     return rank;
 }
 
+/// @brief Helper functions for better error messages
+/// @tparam T int or double
+/// @return string of type T
+template<typename T>
+const char* type_name();
+template<> const char* type_name<double>() { return "float64"; }
+template<> const char* type_name<int>()    { return "int32"; }
+
+/// @brief Checks whether c++ is getting the correct format numpy array from Python, throws error
+/// @tparam T either a double or int
+/// @param np_in numpy array passed in
+/// @param dimensions checks the shape of the np array
+template <typename T>
+void check_np_array_validity(np::ndarray np_in, int dimensions, const std::string& np_array_name = "")
+{
+    // Check dtype
+    if (np_in.get_dtype() != np::dtype::get_builtin<T>()) {
+        std::string msg = np_array_name + " - Incorrect array data type: expected " + std::string(type_name<T>());
+        PyErr_SetString(PyExc_TypeError, msg.c_str());
+        p::throw_error_already_set();
+    }
+    // Check number of dimensions
+    if (np_in.get_nd() != dimensions) {
+        std::string msg = np_array_name + " - Incorrect number of dimensions: expected " +
+                          std::to_string(dimensions) + ", got " + std::to_string(np_in.get_nd());
+        PyErr_SetString(PyExc_TypeError, msg.c_str());
+        p::throw_error_already_set();
+    }
+
+    // If 2D, check for square shape
+    if (dimensions == 2 && np_in.shape(0) != np_in.shape(1)) {
+        std::string msg = np_array_name + " - Incorrect shape: expected a square (n x n) array, got a (" +
+                          std::to_string(np_in.shape(0)) + " x " + std::to_string(np_in.shape(1)) + " )";
+        PyErr_SetString(PyExc_ValueError, msg.c_str());
+        p::throw_error_already_set();
+    }
+
+    // Check row-major contiguous
+    if (!(np_in.get_flags() & np::ndarray::C_CONTIGUOUS)) {
+        std::string msg = np_array_name + " - Array must be row-major contiguous";
+        PyErr_SetString(PyExc_TypeError, msg.c_str());
+        p::throw_error_already_set();
+    }
+}
+
 /// @brief Creates a numpy array of the solution, returned after biqbin is done solving
 /// @return np.ndarray(dtype = np.int32) of the final solution (node names in a np list)
 np::ndarray get_selected_nodes_np_array()
@@ -100,7 +145,13 @@ double run_heuristic_python(
     const np::ndarray & node_sol_X_array,
     const np::ndarray & x_array)
 {
-    // RK we should add checks for numpy array here ...
+    // Check if input is valid
+    check_np_array_validity<double>(P0_L_array, 2, "P0_L");
+    check_np_array_validity<double>(P_L_array, 2, "P_L");
+    check_np_array_validity<int>(xfixed_array, 1, "xfixed");
+    check_np_array_validity<int>(node_sol_X_array, 1, "node_sol_x");
+    check_np_array_validity<int>(x_array, 1, "x");
+
     double * P0_L = reinterpret_cast<double*>(P0_L_array.get_data());
     double * P_L = reinterpret_cast<double*>(P_L_array.get_data());
     int * xfixed = reinterpret_cast<int*>(xfixed_array.get_data());
@@ -174,26 +225,7 @@ void wrapped_read_data()
 {
     np::ndarray np_adj = p::extract<np::ndarray>(py_read_data_override());
 
-    // Checks data validity
-    if (np_adj.get_dtype() != np::dtype::get_builtin<double>())
-    {
-        PyErr_SetString(PyExc_TypeError, "Incorrect array data type"); // RK more informative message would be useful. 
-        p::throw_error_already_set();
-    }
-    if (np_adj.get_nd() != 2)
-    {
-        PyErr_SetString(PyExc_TypeError, "Incorrect number of dimensions"); // RK more informative message would be useful. 
-        p::throw_error_already_set();
-    }
-    if (np_adj.shape(0) != np_adj.shape(1)) {
-        PyErr_SetString(PyExc_ValueError, "Incorrect shape, must be a square n x n array"); // RK more informative message would be useful. 
-        p::throw_error_already_set();
-    }
-    if (!(np_adj.get_flags() & np::ndarray::C_CONTIGUOUS))
-    {
-        PyErr_SetString(PyExc_TypeError, "Array must be row-major contiguous");
-        p::throw_error_already_set();
-    }
+    check_np_array_validity<double>(np_adj, 2, "adj");
 
     process_adj_matrix(reinterpret_cast<double*>(np_adj.get_data()),
                        np_adj.shape(0));

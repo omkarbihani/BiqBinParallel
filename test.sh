@@ -12,7 +12,7 @@ fi
 
 # Extract only the important lines for strict comparison
 extract_comparison_lines() {
-    grep -E '^(Maximum value =|Solution =|Qubo Minimal Value =)'
+    grep -E '^(Maximum value =|Solution =)'
 }
 
 # Extract informational lines only
@@ -31,6 +31,7 @@ nodes=$(echo "$output" | grep '^Nodes =' | sed 's/Nodes = //')
 root_node_bound=$(echo "$output" | grep '^Root node bound =' | sed 's/Root node bound = //')
 time_taken=$(echo "$output" | grep '^Time =' | sed 's/Time = //' | sed 's/s$//')
 max_val=$(echo "$output" | grep '^Maximum value =' | sed 's/Maximum value = //')
+min_val=$(echo "$output" | grep '^Qubo Minimum Value =' | sed 's/Qubo Minimum Value = //')
 
 # Ensure variables aren't empty (default to 0)
 nodes=${nodes:-0}
@@ -41,6 +42,7 @@ expected_root_node_bound=$(cat "$3" | grep '^Root node bound =' | sed 's/Root no
 expected_time=$(cat "$3" | grep '^Time =' | sed 's/Time = //' | sed 's/s$//')
 
 exp_max_val=$(cat "$3" | grep '^Maximum value =' | sed 's/Maximum value = //')
+
 
 # Ensure expected values aren't empty (default to 0)
 expected_nodes=${expected_nodes:-0}
@@ -58,9 +60,9 @@ expected_output_filtered=$(cat "$3" | extract_comparison_lines)
 
 # Print result
 if [[ "$output_filtered" == "$expected_output_filtered" ]]; then
-    echo "O.K. Max val diff = ${max_val_diff}; Node diff = ${node_diff}; Root bound diff = ${root_node_bound_diff} Time diff = ${time_diff}s" 
+    echo "O.K - ${2} Max val diff = ${max_val_diff}; Node diff = ${node_diff}; Root bound diff = ${root_node_bound_diff} Time diff = ${time_diff}s" 
 else
-    echo "Failed!"
+    echo "Failed! $2"
     echo "Max val diff = ${max_val_diff}; Node diff = ${node_diff}; Root bound diff = ${root_node_bound_diff} Time diff = ${time_diff}s" 
     diff <(echo "$output_filtered") <(echo "$expected_output_filtered")
 fi

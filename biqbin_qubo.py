@@ -16,4 +16,3 @@ if __name__ == '__main__':
     if rank == 0:
         print(f"{rank=}")
         print(result)
-        print(f"Qubo Minimal Value = {round(result["qubo"]["min_value"], 4)}")

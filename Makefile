@@ -59,97 +59,6 @@ CFLAGS = $(OPTI) -Wall -W -pedantic
 all: clean $(BINS) $(PYMOD_OUT)
 
 	
-# TESTS
-TEST = 	./test.sh \
-			"mpiexec -n 8 ./$(BINS)" \
-			tests/rudy/g05_60.0 \
-			tests/rudy/g05_60.0-expected_output \
-			params ;
-
-
-TEST_ALL_60 = 	for i in $(shell seq 0 9); do \
-			./test.sh \
-			"mpiexec -n 8 ./$(BINS)" \
-			tests/rudy/g05_60.$$i \
-			tests/rudy/g05_60.$$i-expected_output \
-			params ;\
-	done
-
-TEST_ALL_80 = 	for i in $(shell seq 0 9); do \
-			./test.sh \
-			"mpiexec -n 8 ./$(BINS)" \
-			tests/rudy/g05_80.$$i \
-			tests/rudy/g05_80.$$i-expected_output \
-			params ;\
-	done
-
-TEST_ALL_100 = 	for i in $(shell seq 0 9); do \
-			./test.sh \
-			"mpiexec -n 8 ./$(BINS)" \
-			tests/rudy/g05_100.$$i \
-			tests/rudy/g05_100.$$i-expected_output \
-			params ;\
-	done
-
-# TESTS
-TEST_PYTHON = ./test.sh \
-			"mpiexec -n 3 python3 biqbin_maxcut.py" \
-			tests/rudy/g05_60.0 \
-			tests/rudy/g05_60.0-expected_output \
-			params \
-
-TEST_PYTHON_HEURISTIC = ./test.sh \
-			"mpiexec -n 3 python3 biqbin_maxcut.py" \
-			tests/rudy/g05_60.0 \
-			tests/rudy/g05_60.0-expected_output \
-			params \
-
-TEST_ALL_60_PYTHON = 	for i in $(shell seq 0 9); do \
-			./test.sh \
-			"mpiexec -n 8 python3 biqbin_maxcut.py" \
-			tests/rudy/g05_60.$$i \
-			tests/rudy/g05_60.$$i-expected_output \
-			params ;\
-	done
-
-TEST_ALL_80_PYTHON = 	for i in $(shell seq 0 9); do \
-			./test.sh \
-			"mpiexec -n 8 python3 biqbin_maxcut.py" \
-			tests/rudy/g05_80.$$i \
-			tests/rudy/g05_80.$$i-expected_output \
-			params ;\
-	done
-
-TEST_ALL_100_PYTHON = 	for i in $(shell seq 0 9); do \
-			./test.sh \
-			"mpiexec -n 8 python3 biqbin_maxcut.py" \
-			tests/rudy/g05_100.$$i \
-			tests/rudy/g05_100.$$i-expected_output \
-			params ;\
-	done
-
-
-TEST_QUBO = ./test.sh \
-			"mpiexec -n 3 python3 biqbin_qubo.py" \
-			tests/qubos/kcluster40_025_10_1.json \
-			tests/qubos/kcluster40_025_10_1.json-expected_output \
-			params \
-
-TEST_ALL_QUBO = for p in 25 50 75; do \
-		for a in 10 20 30; do \
-			for b in 1 2 3 4 5; do \
-				pp=$$(printf "%03d" $$p); \
-				aa=$$(printf "%d" $$a); \
-				bb=$$(printf "%d" $$b); \
-				./test.sh \
-				"mpiexec -n 3 python3 biqbin_qubo.py" \
-				tests/qubos/kcluster40_$${pp}_$${aa}_$${bb}.json \
-				tests/qubos/kcluster40_$${pp}_$${aa}_$${bb}.json-expected_output \
-				params ;\
-			done ;\
-		done ;\
-	done
-
 clean-output:
 	rm -f rudy/*.output*
 	rm -f tests/rudy/*.output*
@@ -176,28 +85,38 @@ $(OBJ)/%.o: %.cpp
 $(PYMOD_OUT): $(OBJS)
 	$(CPP) -o $@ $^ -shared -fPIC $(INCLUDES) $(LIB) $(CFLAGS) $(LINALG) -Wl,--no-undefined
 
-test-all: clean-output
-	$(TEST_ALL_60)
-	$(TEST_ALL_80)
-	$(TEST_ALL_100)
-
-
+# Tests
 test: clean-output
-	$(TEST)
+	./test.sh \
+	"mpiexec -n 8 ./$(BINS)" tests/rudy/g05_60.0 tests/rudy/g05_60.0-expected_output params
+
+test-all: clean-output
+	./test_all.sh ./biqbin 60 8
+	./test_all.sh ./biqbin 80 8
+	./test_all.sh ./biqbin 100 8
 
 test-python-maxcut: clean-output
-	$(TEST_PYTHON)
+	./test.sh \
+	"mpiexec -n 3 python3 biqbin_maxcut.py" tests/rudy/g05_60.0 tests/rudy/g05_60.0-expected_output params
 
 test-python-maxcut-all: clean-output
-	$(TEST_ALL_60_PYTHON)
-	$(TEST_ALL_80_PYTHON)
-	$(TEST_ALL_100_PYTHON)
+	./test_all.sh "python3 biqbin_maxcut.py" 60 8
+	./test_all.sh "python3 biqbin_maxcut.py" 80 8
+	./test_all.sh "python3 biqbin_maxcut.py" 100 8
 
 test-python-qubo: clean-output
-	$(TEST_QUBO)
+	./qubo_test.sh \
+	"mpiexec -n 8 python3 run_qubo_test.py" tests/qubos/40/kcluster40_025_10_1.json params
 
-test-python-qubo-all:
-	$(TEST_ALL_QUBO)
+test-python-qubo-all-small:
+	./test_all_qubo.sh tests/qubos/40 8
+	./test_all_qubo.sh tests/qubos/80 8
+
+run-qubo-all-large:
+	./test_all_qubo.sh tests/qubos/100 8
+	./test_all_qubo.sh tests/qubos/120 8
+	./test_all_qubo.sh tests/qubos/140 8
+	./test_all_qubo.sh tests/qubos/160 8
 
 docker: 
 	docker build $(DOCKER_BUILD_PARAMS) --progress=plain -t $(IMAGE):$(TAG)  . 

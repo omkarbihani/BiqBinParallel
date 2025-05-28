@@ -1,8 +1,15 @@
 import numpy as np
-
 import sys
 from neal import SimulatedAnnealingSampler
 from biqbin_base import MaxCutSolver
+import warnings
+
+"""
+*** TESTING ONLY, THIS FILE IS STILL A WORK IN PROGRESS ***
+"""
+warnings.warn(
+    "This functionality is still under development and needs excessive testing!", UserWarning
+)
 
 
 class MaxCutSimulatedAnnealing(MaxCutSolver):
@@ -32,7 +39,7 @@ class MaxCutSimulatedAnnealing(MaxCutSolver):
             list(sampler_result.first.sample.values()),
             dtype=np.int32
         )
-        # copy the results into x
+        # copy the results into x, might want to make it return it instead, and we can evaluate it in cpp?
         j = 0
         for i in range(len(x)):
             if xfixed[i] == 0:
@@ -41,7 +48,6 @@ class MaxCutSimulatedAnnealing(MaxCutSolver):
             else:
                 x[i] = sol_X[i]
         sol_value = self.evaluate_solution(L0, x)
-        # print(sol_value)
         return sol_value
 
     def evaluate_solution(self, L0: np.ndarray, sol: np.ndarray) -> float:
