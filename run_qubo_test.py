@@ -18,7 +18,7 @@ if __name__ == '__main__':
         expected_len_x = sum(expected_x)
 
         qubo_result = result["qubo"]
-        computed_optimum = qubo_result["optimum"]
+        computed_optimum = qubo_result["computed_val"]
         computed_x = [int(i) for i in qubo_result["x"]]
         computed_len_x = sum(computed_x)
 

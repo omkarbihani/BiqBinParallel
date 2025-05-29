@@ -13,6 +13,8 @@ if __name__ == '__main__':
     result = solver.run()
 
     rank = solver.get_rank()
+    print(f"{rank=} heuristics ran {solver.heuristic_counter} times")
     if rank == 0:
         print(f"{rank=}")
         print(result)
+

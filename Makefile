@@ -16,7 +16,7 @@ CPP = mpic++
 
 LINALG 	 = -lopenblas -lm 
 OPTI     = -O3 -ffast-math -fexceptions -fPIC -fno-common
-CPPOPTI     = -O3 -fexceptions -fPIC -fno-common
+CPPOPTI     = -O3 -fexceptions -fPIC -fno-common -ffast-math
 
 PYBOOST ?= -I/home/roman/anaconda3/include/python3.12 \
 		  -I/home/roman/anaconda3/include \
@@ -114,7 +114,7 @@ test-python-qubo-all-small:
 	./test_all_qubo.sh tests/qubos/40 8
 	./test_all_qubo.sh tests/qubos/80 8
 
-test-python-qubo-all-large:
+run-qubo-all-large:
 	./test_all_qubo.sh tests/qubos/100 8
 	./test_all_qubo.sh tests/qubos/120 8
 	./test_all_qubo.sh tests/qubos/140 8

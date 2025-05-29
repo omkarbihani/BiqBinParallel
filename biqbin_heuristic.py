@@ -1,21 +1,25 @@
+import numpy as np
+import sys
+from neal import SimulatedAnnealingSampler
+from biqbin_base import QUBOSolver, DataGetterJson, default_heuristic
+import warnings
+import logging
+from copy import deepcopy
+
+logger = logging.getLogger(__name__)
+
+
 """
 *** TESTING ONLY, THIS FILE IS STILL A WORK IN PROGRESS ***
 """
-
-import warnings
-from biqbin_base import MaxCutSolver
-from neal import SimulatedAnnealingSampler
-import sys
-import numpy as np
-
 warnings.warn(
     "This functionality is still under development and needs excessive testing!", UserWarning
 )
 
 
-class MaxCutSimulatedAnnealing(MaxCutSolver):
-    def __init__(self, problem_instance_name: str, params: str, num_reads: int = 100):
-        super().__init__(problem_instance_name, params)
+class QuboSimulatedAnnealing(QUBOSolver):
+    def __init__(self, data_gettr, params: str, num_reads: int = 10):
+        super().__init__(data_gettr, params)
         self.sampler = SimulatedAnnealingSampler()
         self.num_reads = num_reads
 
@@ -32,23 +36,36 @@ class MaxCutSimulatedAnnealing(MaxCutSolver):
         Returns:
             np.ndarray: solution nodes provided by the heuristc, should be in 0, 1 form (1 node is chosen, 0 it is not chosen)
         """
+
         self.heuristic_counter += 1
-        # Sampler needs -L
-        sampler_result = self.sampler.sample_qubo(-L, num_reads=self.num_reads)
-        # get the results from sampler
-        result = np.array(
-            list(sampler_result.first.sample.values()),
-            dtype=np.int32
+
+        #default_heuristic(L0, L, xfixed, sol_X, x)
+        #return default_heuristic(L0, L, xfixed, sol_X, x)
+        
+        _x = np.array(
+            list(self.sampler.sample_qubo(-L[:-1, :-1], num_reads=self.num_reads).first.sample.values()),
+        dtype=np.int32
         )
+        #  This can be likely simplified.
+        _x = 2*_x-1
+        _x = np.hstack([_x, [-1]])
+        _x = 1/2*(_x+1)
+        
         # copy the results into x, might want to make it return it instead, and we can evaluate it in cpp?
         j = 0
         for i in range(len(x)):
             if xfixed[i] == 0:
-                x[i] = result[j]
+                x[i] = _x[j]
                 j += 1
             else:
                 x[i] = sol_X[i]
+        
         sol_value = self.evaluate_solution(L0, x)
+
+        if logger.isEnabledFor(logging.DEBUG):
+            her_value = default_heuristic(L0, L, xfixed, sol_X, deepcopy(x))
+            logger.debug(f'Custom heuristic: {sol_value}, default heuristic: {her_value}')
+
         return sol_value
 
     def evaluate_solution(self, L0: np.ndarray, sol: np.ndarray) -> float:
@@ -68,15 +85,22 @@ class MaxCutSimulatedAnnealing(MaxCutSolver):
         return sol_val
 
 
+
 if __name__ == '__main__':
+
+    # https://stackoverflow.com/questions/7016056/python-logging-not-outputting-anything
+    logging.basicConfig()
+    logging.root.setLevel(logging.DEBUG)
 
     _, problem_instance_file_name, params = sys.argv
 
-    solver = MaxCutSimulatedAnnealing(problem_instance_file_name, params)
+    data_getter = DataGetterJson(problem_instance_file_name)
+
+    solver = QuboSimulatedAnnealing(data_getter, params=params, num_reads=5)
     result = solver.run()
 
-    #  We need to expose node ID, so we know if we are on master !!!
     rank = solver.get_rank()
     print(f"{rank=} heuristics ran {solver.heuristic_counter} times")
     if rank == 0:
+        print(f"{rank=}")
         print(result)

@@ -119,10 +119,15 @@ class QUBOSolver(MaxCutSolver):
         Qe_plus_c = -np.array([(np.sum(q_sym, 1))])
         np.fill_diagonal(q_sym, 0)
 
+        #return np.block([
+        #    [np.zeros((1, 1)), Qe_plus_c],
+        #    [Qe_plus_c.T,     q_sym]
+        #])
+    
         return np.block([
-            [np.zeros((1, 1)), Qe_plus_c],
-            [Qe_plus_c.T,     q_sym]
-        ])
+            [q_sym, Qe_plus_c.T],
+            [Qe_plus_c, np.zeros((1, 1))]
+    ])
 
     def _maxcut_solution2qubo_solution(self, maxcut_solution: np.ndarray) -> np.ndarray:
         """Convert maxcut solution nodes to qubo solution node
@@ -139,12 +144,18 @@ class QUBOSolver(MaxCutSolver):
 
         _x_mc = np.array(maxcut_solution, dtype=int)-1
         x_mc_sol = np.ones(n + 1)
+        xx = np.zeros(n + 1)
+        xx[_x_mc] = 1
+        
+        
         x_mc_sol[_x_mc] = -1
-        x_mc_sol *= -x_mc_sol[0]
+#        x_mc_sol *= -x_mc_sol[0]
+        x_mc_sol *= -x_mc_sol[-1]
         x_mc_sol
-        y = 1/2*(x_mc_sol+1)[1:]
+#        y = 1/2*(x_mc_sol+1)[1:]
+        y = 1/2*(x_mc_sol+1)[:-1]
         qubo_solution = np.nonzero(y)[0] + 1
-        return qubo_solution, y
+        return qubo_solution, y, xx
 
     def read_data(self) -> np.ndarray:
         """Read qubo json file, return an adjacency matrix for maxcut
@@ -162,10 +173,15 @@ class QUBOSolver(MaxCutSolver):
         """
         result = super().run()
         if (self.get_rank() == 0):
-            qubo_solution, qubo_x = self._maxcut_solution2qubo_solution(
+            qubo_solution, qubo_x, mc_x = self._maxcut_solution2qubo_solution(
                 result["solution"])
 
-            optimum = 0.5 * self.data_getter.get_A().dot(qubo_x).dot(qubo_x)
-            return {'maxcut': result, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'optimum': float(optimum)}}
+            # optimum = self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x) this is just - mc solution
+
+            computed_val = 0.5 * self.data_getter.get_A().dot(qubo_x).dot(qubo_x)
+            optimum = self.data_getter.qubo_data['optimum']
+            cardinality = qubo_x.sum()
+            return {'maxcut': {'solution': result, 'x': mc_x, 'time': result['time']}, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'optimum': float(optimum), 'computed_val': float(computed_val)},
+                    'cardinality': float(cardinality)}
         else:
             return None
