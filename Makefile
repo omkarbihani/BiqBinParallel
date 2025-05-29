@@ -16,6 +16,7 @@ CPP = mpic++
 
 LINALG 	 = -lopenblas -lm 
 OPTI     = -O3 -ffast-math -fexceptions -fPIC -fno-common
+CPPOPTI     = -O3 -fexceptions -fPIC -fno-common
 
 PYBOOST ?= -I/home/roman/anaconda3/include/python3.12 \
 		  -I/home/roman/anaconda3/include \
@@ -50,6 +51,7 @@ BBOBJSCPP =	$(OBJ)/wrapper.o
 OBJS = $(BBOBJS) $(BBOBJSCPP)
 
 CFLAGS = $(OPTI) -Wall -W -pedantic 
+CPPFLAGS = $(CPPOPTI) -Wall -W -pedantic 
 
 #### Rules ####
 
@@ -79,11 +81,11 @@ $(OBJ)/%.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
 
 $(OBJ)/%.o: %.cpp
-	$(CPP) $(CFLAGS) $(INCLUDES) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) $(INCLUDES) -c -o $@ $<
 
 # Python module rule
 $(PYMOD_OUT): $(OBJS)
-	$(CPP) -o $@ $^ -shared -fPIC $(INCLUDES) $(LIB) $(CFLAGS) $(LINALG) -Wl,--no-undefined
+	$(CPP) -o $@ $^ -shared -fPIC $(INCLUDES) $(LIB) $(LINALG) -Wl,--no-undefined
 
 # Tests
 test: clean-output

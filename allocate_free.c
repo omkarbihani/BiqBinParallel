@@ -2,7 +2,7 @@
 
 #include "biqbin.h"
 #include "global_var.h"
-#include "wrapper.h"
+//#include "wrapper.h"
 
 extern BabSolution *BabSol;     // global solution of B&B algorithm defined in heap.c
 
@@ -44,9 +44,9 @@ void allocMemory(void) {
 
 
 void freeMemory(void) {
-    #ifndef PURE_C
-    clean_python_references();
-    #endif
+//    #ifndef PURE_C
+//    clean_python_references();
+//    #endif
     free(SP->L);
     free(SP);
     free(PP->L);

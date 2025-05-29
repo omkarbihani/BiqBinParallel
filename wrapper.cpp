@@ -57,6 +57,12 @@ int get_rank() {
     return rank;
 }
 
+void clean_python_references(void)
+{
+    py_read_data_override = p::object(); // Clear the callback
+    python_heuristic_override = p::object();
+}
+
 /// @brief Helper functions for better error messages
 /// @tparam T int or double
 /// @return string of type T
@@ -127,6 +133,7 @@ p::dict run_py(const char * prog_name, const char *problem_instance_name, const 
     const char* argv[3] = {prog_name, problem_instance_name, params_file_name};
 
     wrapped_main(3, argv);
+    clean_python_references(); // This is far from optimal ... we need to handle this better.
 
 
     // Build result dictionary
@@ -231,11 +238,7 @@ void wrapped_read_data()
                        np_adj.shape(0));
 }
 
-void clean_python_references(void)
-{
-    py_read_data_override = p::object(); // Clear the callback
-    python_heuristic_override = p::object();
-}
+
 
 // Python module exposure
 BOOST_PYTHON_MODULE(solver)
