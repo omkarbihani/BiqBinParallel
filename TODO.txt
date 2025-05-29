@@ -1,0 +1,2 @@
+- Test overridding heuristic
+- Fix MPI Finalize conflicts with Python objects
