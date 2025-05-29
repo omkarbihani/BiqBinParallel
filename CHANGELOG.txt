@@ -8,4 +8,6 @@
 - added runHeuristic_unpacked which is the original runHeuristc but only using the paramaters it needs (unpacked the Structures)
 - Split readData function into two functions: readData and process_adj_matrix (process_input.c)
 - Dockerfile added to compile and run biqbin in a container
-- added test instances and bash scripts to run tests
+- added biqbin_base.py biqbin_maxcut.py and biqbin_qubo.py for 2 different wrapped versions of the solver (maxcut and qubo) 
+- added test instances and bash scripts to run tests for all versions
+- updated README file and added .md file extension
