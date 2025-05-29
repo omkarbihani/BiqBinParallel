@@ -1,12 +1,13 @@
-import numpy as np
-import sys
-from neal import SimulatedAnnealingSampler
-from biqbin_base import MaxCutSolver
-import warnings
-
 """
 *** TESTING ONLY, THIS FILE IS STILL A WORK IN PROGRESS ***
 """
+
+import warnings
+from biqbin_base import MaxCutSolver
+from neal import SimulatedAnnealingSampler
+import sys
+import numpy as np
+
 warnings.warn(
     "This functionality is still under development and needs excessive testing!", UserWarning
 )

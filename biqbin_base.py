@@ -165,8 +165,6 @@ class QUBOSolver(MaxCutSolver):
             qubo_solution, qubo_x = self._maxcut_solution2qubo_solution(
                 result["solution"])
 
-            # optimum = self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x) this is just - mc solution
-
             optimum = 0.5 * self.data_getter.get_A().dot(qubo_x).dot(qubo_x)
             return {'maxcut': result, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'optimum': float(optimum)}}
         else:
