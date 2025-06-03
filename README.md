@@ -30,28 +30,86 @@ For more details, refer to the [GNU General Public License](https://www.gnu.org/
 
 ---
 
-##  BiqBin Setup Requirements (Ubuntu 22.04)
+##  BiqBin Requirements (Ubuntu 22.04)
 
-###  System Dependencies (Needs updating):
+###  System Dependencies - see Setup for Conda-based build:
 
 - `build-essential`
 - `libopenblas-dev`
 - `mpich`
-- `boost` <!-- python.boost version? -->
-- `python3` <!-- 3.12? -->
-- `python3-pip`
+- `Python.Boost`
+- `python>=3.12`
 
 ###  Python Packages:
 
 - `scipy`
+- `numpy`
+- `dwave-neal`
 
-##  Setup
+##  Setup (Conda-based Build)
 
-1. Open the `Makefile`.
-2. Set the **compiler**, **BLAS/LAPACK** **BOOST** package paths according to your system.
-3. Run:
+This project uses C/C++, Boost.Python, OpenBLAS, and MPI, and is fully buildable inside a Conda environment.
 
+### 🔧 Requirements
+
+- [Anaconda](https://www.anaconda.com/download)
+
+---
+
+### Setup Instructions (Conda Environment)
+
+#### 1. Install Anaconda (if not already)
+
+Download
 ```bash
+curl -O https://repo.anaconda.com/archive/Anaconda3-2024.10-1-Linux-x86_64.sh
+```
+Install
+```bash
+bash ~/Anaconda3-2024.10-1-Linux-x86_64.sh
+```
+---
+Configure solver if not set to libmamba
+```bash
+conda install -n base conda-libmamba-solver
+conda config --set solver libmamba
+```
+Update to nevest
+```bash
+conda update -n base -c defaults conda
+```
+
+#### 2. Create and activate Conda environment
+Create
+```bash
+conda create -n biqbin-py312 python=3.12
+```
+Activate
+```bash
+conda activate biqbin-py312
+```
+
+#### 3. Install dependencies
+Python.Boost
+```bash
+conda install conda-forge::libboost-python-devel
+```
+C and C++ compiler
+```bash
+conda install -c conda-forge gxx
+```
+MPI
+```bash
+conda install conda-forge::openmpi
+```
+Python packages
+```bash
+pip install -r requirements.txt
+```
+
+#### 5. Compile using Makefile
+```bash
+make clean
 make
 ```
 
@@ -66,7 +124,15 @@ make docker
 
 ## Usage
 
-> **NOTE:** Any biqbin version needs at least 3 processes to run!
+> **Min Processes:** Biqbin requires needs at least **3 mpi processes to run**!
+
+> **NOTE:** Depending on your system you must set `OpenBlas` and `OpenMPI` environment variables, to prevent over threading which can **significantly** slow down your system:  
+```bash
+ export OPENBLAS_NUM_THREADS=1
+ export GOTO_NUM_THREADS=1
+ export OMP_NUM_THREADS=1
+ ```
+Setting them 1 is just an example.
 
 ### Original Biqbin Maxcut Parallel solver - C only
 
@@ -79,8 +145,6 @@ mpirun -n num_processess ./biqbin instance_file params
 - `num_processes`: number of processes to run the program using MPI, program needs at least 3 (1 master, and 2 worker process) to be used.
 - `instance_file`: A file containing the graph (in edge list format).
 - `params`: The parameter file used to configure the solver.
-
-To run the g05_60.0 instance use this make command
 
 ---
 
@@ -96,7 +160,6 @@ mpirun -n num_processes python3 biqbin_maxcut.py instance_file params
 - `instance_file`: A file containing the graph (in edge list format).
 - `params`: The parameter file used to configure the solver.
 
-To run the g05_60.0 instance use this make command
 
 ---
 
@@ -118,9 +181,8 @@ mpirun -n num_processes python3 biqbin_qubo.py instance_file params
 
 Please check the following Python files to find how to setup biqbin solver through Python
 
-- `run_example.py`: Example on how to run the default version of biqbin.
-- `run_heuristic_example`: Example on how to inject your own heuristic function into biqbin
-- `run_qubo_example`: Example on how to run QUBO instances on biqbin and transform the solution back to a QUBO solution
+- `biqbin_maxcut.py`: Example on how to run the default version of biqbin.
+- `biqbin_qubo.py`: Example on how to run QUBO problem.
 
 
 ---
