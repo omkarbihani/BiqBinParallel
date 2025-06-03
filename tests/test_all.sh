@@ -14,5 +14,5 @@ for i in $(seq 0 9); do
     INPUT="tests/rudy/g05_${SIZE}.${i}"
     EXPECTED="${INPUT}-expected_output"
 
-    ./test.sh "mpiexec -n $NPROC $SCRIPT_NAME" "$INPUT" "$EXPECTED" params
+    tests/test.sh "mpiexec -n $NPROC $SCRIPT_NAME" "$INPUT" "$EXPECTED" params
 done

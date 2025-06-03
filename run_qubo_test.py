@@ -1,7 +1,6 @@
 import sys
 from biqbin_base import QUBOSolver, DataGetterJson
 
-
 if __name__ == '__main__':
     _, problem_instance_file_name, params = sys.argv
 
