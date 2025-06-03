@@ -1,6 +1,5 @@
 #ifndef WRAPPER_H
 #define WRAPPER_H
-#ifndef PURE_C
 
 #ifdef __cplusplus
 # define EXTERN_C extern "C"
@@ -15,5 +14,4 @@ EXTERN_C void clean_python_references(void);
 EXTERN_C void copy_solution(void);
 EXTERN_C void record_time(double time_taken);
 EXTERN_C void set_rank(int r);
-#endif
 #endif

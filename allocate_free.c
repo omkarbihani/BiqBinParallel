@@ -2,7 +2,6 @@
 
 #include "biqbin.h"
 #include "global_var.h"
-//#include "wrapper.h"
 
 extern BabSolution *BabSol;     // global solution of B&B algorithm defined in heap.c
 

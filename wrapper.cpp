@@ -140,9 +140,9 @@ np::ndarray get_selected_nodes_np_array()
 /// @param problem_instance_name argv[1] "problem_path_to_file"
 /// @param params_file_name argv[2] "path_to_params_file"
 /// @return biqbin maxcut result
-p::dict run_py(const char *prog_name, const char *problem_instance_name, const char *params_file_name)
+p::dict run_py(char *prog_name, char *problem_instance_name, char *params_file_name)
 {
-    const char *argv[3] = {prog_name, problem_instance_name, params_file_name};
+    char *argv[3] = {prog_name, problem_instance_name, params_file_name};
 
     wrapped_main(3, argv);
     clean_python_references(); // TODO: handle python references better
