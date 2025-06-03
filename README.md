@@ -48,16 +48,9 @@ For more details, refer to the [GNU General Public License](https://www.gnu.org/
 
 ##  Setup (Conda-based Build)
 
-This project uses C/C++, Boost.Python, OpenBLAS, and MPI, and is fully buildable inside a Conda environment.
-
-### 🔧 Requirements
-
-- [Anaconda](https://www.anaconda.com/download)
-
----
+This project is fully buildable inside a Conda environment.
 
 ### Setup Instructions (Conda Environment)
-
 #### 1. Install Anaconda (if not already)
 
 Download
@@ -126,7 +119,7 @@ make docker
 
 > **Min Processes:** Biqbin requires needs at least **3 mpi processes to run**!
 
-> **NOTE:** Depending on your system you must set `OpenBlas` and `OpenMPI` environment variables, to prevent over threading which can **significantly** slow down your system:  
+> **OverThreading:** Depending on your system you must set `OpenBlas` environment variables, to prevent over threading which can **significantly** slow down your system:  
 ```bash
  export OPENBLAS_NUM_THREADS=1
  export GOTO_NUM_THREADS=1
@@ -188,7 +181,7 @@ Please check the following Python files to find how to setup biqbin solver throu
 ---
 
 > **NOTE:** The default **maximum problem size** is **1024 nodes**.  
-> If you need more, **edit** the value of `NMAX` in `biqbin.h` and `biqbin_data_objects.py`.
+> If you require more, **edit** the value of `NMAX` in `biqbin.h`.
 
 ---
 
