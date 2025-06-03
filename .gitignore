@@ -1,8 +1,6 @@
 **/*.output*
 *.so
-__pycache__/*
-Obj/
+__pycache__
 biqbin
-.vscode/
-Objc/
+.vscode
 build
