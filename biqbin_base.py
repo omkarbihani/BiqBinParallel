@@ -119,23 +119,16 @@ class QUBOSolver(MaxCutSolver):
         Qe_plus_c = -np.array([(np.sum(q_sym, 1))])
         np.fill_diagonal(q_sym, 0)
 
-        #return np.block([
-        #    [np.zeros((1, 1)), Qe_plus_c],
-        #    [Qe_plus_c.T,     q_sym]
-        #])
-    
         return np.block([
             [q_sym, Qe_plus_c.T],
             [Qe_plus_c, np.zeros((1, 1))]
-    ])
+        ])
 
     def _maxcut_solution2qubo_solution(self, maxcut_solution: np.ndarray) -> np.ndarray:
         """Convert maxcut solution nodes to qubo solution node
 
         Args:
             maxcut_solution (np.ndarray): maxcut solution found by biqbin
-            maxcut_num_vertices (int): number of vertices in maxcut
-
         Returns:
             np.ndarray: qubo solution nodes
         """
@@ -146,13 +139,10 @@ class QUBOSolver(MaxCutSolver):
         x_mc_sol = np.ones(n + 1)
         xx = np.zeros(n + 1)
         xx[_x_mc] = 1
-        
-        
+
         x_mc_sol[_x_mc] = -1
-#        x_mc_sol *= -x_mc_sol[0]
         x_mc_sol *= -x_mc_sol[-1]
         x_mc_sol
-#        y = 1/2*(x_mc_sol+1)[1:]
         y = 1/2*(x_mc_sol+1)[:-1]
         qubo_solution = np.nonzero(y)[0] + 1
         return qubo_solution, y, xx

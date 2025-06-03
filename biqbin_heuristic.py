@@ -39,18 +39,19 @@ class QuboSimulatedAnnealing(QUBOSolver):
 
         self.heuristic_counter += 1
 
-        #default_heuristic(L0, L, xfixed, sol_X, x)
-        #return default_heuristic(L0, L, xfixed, sol_X, x)
-        
+        # default_heuristic(L0, L, xfixed, sol_X, x)
+        # return default_heuristic(L0, L, xfixed, sol_X, x)
+
         _x = np.array(
-            list(self.sampler.sample_qubo(-L[:-1, :-1], num_reads=self.num_reads).first.sample.values()),
-        dtype=np.int32
+            list(self.sampler.sample_qubo(-L[:-1, :-1],
+                 num_reads=self.num_reads).first.sample.values()),
+            dtype=np.int32
         )
         #  This can be likely simplified.
         _x = 2*_x-1
         _x = np.hstack([_x, [-1]])
         _x = 1/2*(_x+1)
-        
+
         # copy the results into x, might want to make it return it instead, and we can evaluate it in cpp?
         j = 0
         for i in range(len(x)):
@@ -59,12 +60,13 @@ class QuboSimulatedAnnealing(QUBOSolver):
                 j += 1
             else:
                 x[i] = sol_X[i]
-        
+
         sol_value = self.evaluate_solution(L0, x)
 
         if logger.isEnabledFor(logging.DEBUG):
             her_value = default_heuristic(L0, L, xfixed, sol_X, deepcopy(x))
-            logger.debug(f'Custom heuristic: {sol_value}, default heuristic: {her_value}')
+            logger.debug(
+                f'Custom heuristic: {sol_value}, default heuristic: {her_value}')
 
         return sol_value
 
@@ -83,7 +85,6 @@ class QuboSimulatedAnnealing(QUBOSolver):
             for j in range(len(sol)):
                 sol_val += L0[i][j] * sol[i] * sol[j]
         return sol_val
-
 
 
 if __name__ == '__main__':

@@ -17,4 +17,3 @@ if __name__ == '__main__':
     if rank == 0:
         print(f"{rank=}")
         print(result)
-
