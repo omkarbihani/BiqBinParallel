@@ -12,9 +12,17 @@ from solver import (run, set_heuristic,
 
 
 class MaxCutSolver:
+    """Default MaxCut Biqbin Wrapper, runs Biqbin MaxCut using its original functions
+    """
     solver_name = f'PyBiqBin-MaxCut {__version__}'
 
-    def __init__(self, problem_instance_name, params):
+    def __init__(self, problem_instance_name: str, params: str):
+        """Initialize the solver
+
+        Args:
+            problem_instance_name (str): path to problem instance in edge weight list format
+            params (str): path to parameters file
+        """
         self.problem_instance_name = problem_instance_name
         self.params = params
         set_read_data(self.read_data)
@@ -22,24 +30,53 @@ class MaxCutSolver:
         # For testing purposes
         self.heuristic_counter = 0
 
-    def read_data(self):
+    def read_data(self) -> np.ndarray:
+        """Transform edge weight list into an adjacancy matrix
+
+        Returns:
+            np.ndarray: adjacency matrix
+        """
         result = default_read_data(self.problem_instance_name)
         return result
 
-    def heuristic(self, L0: np.ndarray, L: np.ndarray, xfixed: np.array, sol_X: np.array, x: np.array):
+    def heuristic(self, L0: np.ndarray, L: np.ndarray, xfixed: np.array, sol_X: np.array, x: np.array) -> float:
+        """Default heuristic (heuristic_unpacked in heuristic.c)
+
+        Args:
+            L0 (np.ndarray): original Problem *SP->L matrix
+            L (np.ndarray): subproblem Problem *PP->L matrix
+            xfixed (np.array): current branch and bound node fixed variable array
+            sol_X (np.array): current solution stored in the branch and bound node
+            x (np.array): stores the solution of the heuristic function, used by the solver to determine the lower bound
+
+        Returns:
+            float: value of the solution array "x" found by the heuristic function
+        """
         self.heuristic_counter += 1
         return default_heuristic(L0, L, xfixed, sol_X, x)
 
     def run(self):
+        """Runs Biqbin Maxcut solver
+
+        Returns:
+            dict: result dict with keys: "max_val" - max cut solution value, "solution" - nodes in this solution, "time" - spent solving 
+        """
         return run(self.solver_name, self.problem_instance_name, self.params)
 
     def get_rank(self) -> int:
+        """MPI process rank
+
+        Returns:
+            int: rank
+        """
         return get_rank()
 
 
 class DataGetter(ABC):
+    """Abstract class to parse qubo data
+    """
     @abstractmethod
-    def problem_instance_name(self):
+    def problem_instance_name(self) -> str:
         ...
 
     @abstractmethod
@@ -80,6 +117,11 @@ class DataGetterJson(DataGetter):
         return self.qubo
 
     def get_A(self):
+        """Used in testing the expected output with computed one after solving
+
+        Returns:
+            np.ndarray: qubo in regular form
+        """
         if 'A' not in self.qubo_data:
             print(f"Matrix A not in {self.filename}.")
             exit(1)
@@ -159,7 +201,7 @@ class QUBOSolver(MaxCutSolver):
         """Runs the original biqbin then adds the qubo solution nodes to the result dict
 
         Returns:
-            dictionary: "solution": maxcut solution nodes, "max_val": maxcut maximum value, "time": solving time, "qubo_solution": qubo solution nodes
+            dict: result dict containing "maxcut" and "qubo" keys with their respective solutions
         """
         result = super().run()
         if (self.get_rank() == 0):

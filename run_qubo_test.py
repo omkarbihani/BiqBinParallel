@@ -1,6 +1,9 @@
 import sys
 from biqbin_base import QUBOSolver, DataGetterJson
 
+"""
+    Compares expected output in qubo json file to the computed one
+"""
 if __name__ == '__main__':
     _, problem_instance_file_name, params = sys.argv
 
