@@ -1,6 +1,6 @@
 import sys
+import json
 from biqbin_base import QUBOSolver, DataGetterJson
-
 
 """
     Compares expected output in qubo json file to the computed one
@@ -15,28 +15,35 @@ if __name__ == '__main__':
 
     rank = solver.get_rank()
     if rank == 0:
-        print(result)
-        solver.save_result(result, solver.problem_instance_name + "-expected_value.json")
-        # expected_optimum = qubo_data["optimum"]
-        # expected_x = qubo_data["x"]
-        # expected_len_x = sum(expected_x)
+        with open(solver.problem_instance_name + "-expected_output.json",  "r") as f:
+            expected_result = json.load(f)
+        
+        test_failed = False
+        diffs = {
+            "time": expected_result["time"] - result["time"]
+        }
+        for problem in ["maxcut", "qubo"]:
+            com_val = result[problem]["computed_val"]
+            exp_val = expected_result[problem]["computed_val"]
 
-        # qubo_result = result["qubo"]
-        # computed_optimum = qubo_result["computed_val"]
-        # computed_x = [int(i) for i in qubo_result["x"]]
-        # computed_len_x = sum(computed_x)
+            val_diff = com_val - exp_val
+            diffs[f"{problem}_val"] = val_diff
 
-        # if computed_optimum == expected_optimum:
-        #     print(
-        #         f"OK! - {qubo_data["name"]} Computed value == expected value = {computed_optimum}; nodes diff = {computed_len_x - expected_len_x}; Time = {result["maxcut"]["time"]}"
-        #     )
-        #     exit(0)
-        # else:
-        #     print(
-        #         f"FAILED! - {qubo_data["name"]} Computed value: {computed_optimum} != Expected value: {expected_optimum} diff = {computed_optimum - expected_optimum};  Time = {result["maxcut"]["time"]}"
-        #     )
-        #     print(
-        #         f"Computed x num nodes = {computed_len_x} - Expected x num nodes = {expected_len_x}; diff = {computed_len_x - expected_len_x}")
-        #     print(f"Computed x = {computed_x}")
-        #     print(f"Expected x = {expected_x}")
-        #     exit(1)
+            com_x = list(float(i) for i in result[problem]["x"])
+            com_len_x = sum(com_x)
+            exp_x = expected_result[problem]["x"]
+            exp_len_x = sum(exp_x)
+            if abs(val_diff) > 0.0001:
+                print(f"Computed x = {com_x}")
+                print(f"Expected x = {exp_x}")
+                test_failed = True
+        if not test_failed:
+            print(
+                f"OK! - {solver.problem_instance_name} Qubo val diff = {diffs["qubo_val"]}; nodes diff = {com_len_x - exp_len_x}; Time diff = {diffs["time"]}"
+            )
+            exit(0)
+        else:
+            print(
+            f"FAILED! - {solver.problem_instance_name} Maxcut diff = {diffs["maxcut_val"]}; Qubo diff = {diffs["qubo_val"]};  Time diff = {diffs["time"]}"
+            )
+            exit(1)
