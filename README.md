@@ -30,7 +30,9 @@ For more details, refer to the [GNU General Public License](https://www.gnu.org/
 
 ---
 
-##  BiqBin Requirements (Ubuntu 22.04)
+##  BiqBin Requirements
+
+
 
 ###  System Dependencies - see Setup for Conda-based build:
 
@@ -119,7 +121,7 @@ make docker
 
 > **Min Processes:** Biqbin requires needs at least **3 mpi processes to run**!
 
-> **OverThreading:** Depending on your system you must set `OpenBlas` environment variables, to prevent over threading which can **significantly** slow down your system:  
+> **Over Concurrency:** Depending on your system you must set `OpenBlas` environment variables, to prevent over threading which can **significantly** slow down your system:  
 ```bash
  export OPENBLAS_NUM_THREADS=1
  export GOTO_NUM_THREADS=1

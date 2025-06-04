@@ -61,7 +61,11 @@ class MaxCutSolver:
         Returns:
             dict: result dict with keys: "max_val" - max cut solution value, "solution" - nodes in this solution, "time" - spent solving 
         """
-        return run(self.solver_name, self.problem_instance_name, self.params)
+        result = run(self.solver_name, self.problem_instance_name, self.params)
+        if (self.get_rank() == 0):
+            return result
+        else:
+            return None
 
     def get_rank(self) -> int:
         """MPI process rank
@@ -70,7 +74,25 @@ class MaxCutSolver:
             int: rank
         """
         return get_rank()
+    
+    def save_result(self, result, output_path=None):
+        output_path = self._process_output_path(output_path)
+        with open(output_path, "w") as f:
+            json.dump(result, f, default=self._convert_numpy)
+            
+    def _process_output_path(self, output_path: str) -> str:
+        if output_path is None:
+            return self.problem_instance_name + ".output.json"
+        if not output_path.endswith(".json"):
+            output_path += ".json"
+        return output_path
 
+    def _convert_numpy(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, np.generic):
+            return obj.item()
+        raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 class DataGetter(ABC):
     """Abstract class to parse qubo data
@@ -98,7 +120,7 @@ class DataGetterJson(DataGetter):
         self.filename = filename
         with open(filename, "r") as f:
             self.qubo_data = json.load(f)
-            self.qubo = self.___from_sparse(self.qubo_data["qubo"])
+            self.qubo = self.from_sparse(self.qubo_data["qubo"])
 
     def problem_instance_name(self) -> str:
         """Get the instance file path
@@ -116,18 +138,7 @@ class DataGetterJson(DataGetter):
         """
         return self.qubo
 
-    def get_A(self):
-        """Used in testing the expected output with computed one after solving
-
-        Returns:
-            np.ndarray: qubo in regular form
-        """
-        if 'A' not in self.qubo_data:
-            print(f"Matrix A not in {self.filename}.")
-            exit(1)
-        return self.___from_sparse(self.qubo_data["A"])
-
-    def ___from_sparse(self, qubo_sparse):
+    def from_sparse(self, qubo_sparse):
         """Converts qubo from sparse to regular form
 
         Args:
@@ -207,13 +218,9 @@ class QUBOSolver(MaxCutSolver):
         if (self.get_rank() == 0):
             qubo_solution, qubo_x, mc_x = self._maxcut_solution2qubo_solution(
                 result["solution"])
-
-            # optimum = self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x) this is just - mc solution
-
-            computed_val = 0.5 * self.data_getter.get_A().dot(qubo_x).dot(qubo_x)
-            optimum = self.data_getter.qubo_data['optimum']
+            computed_val = 0.5 * self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x)
             cardinality = qubo_x.sum()
-            return {'maxcut': {'solution': result, 'x': mc_x, 'time': result['time']}, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'optimum': float(optimum), 'computed_val': float(computed_val)},
+            return {'maxcut': {'solution': result, 'x': mc_x, 'time': result['time']}, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'computed_val': float(computed_val)},
                     'cardinality': float(cardinality)}
         else:
             return None

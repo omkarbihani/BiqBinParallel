@@ -9,5 +9,5 @@ if [ -z "$dir" ]; then
 fi
 
 for file in $(find "$dir" -type f -name "*.json"); do
-  PYTHONPATH=.. tests/qubo_test.sh "mpiexec -n $nproc python3 run_qubo_test.py" "$file" params
+  PYTHONPATH=.. tests/qubo_test.sh "mpiexec -n $nproc python3 -m tests.run_qubo_test" "$file" params
 done

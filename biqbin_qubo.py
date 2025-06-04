@@ -21,3 +21,4 @@ if __name__ == '__main__':
     if rank == 0:
         # Master rank prints the results
         print(result)
+        solver.save_result(result)

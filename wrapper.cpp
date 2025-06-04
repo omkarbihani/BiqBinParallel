@@ -242,7 +242,7 @@ void wrapped_read_data()
 }
 
 // Python module exposure
-BOOST_PYTHON_MODULE(solver)
+BOOST_PYTHON_MODULE(biqbin)
 {
     np::initialize();
 

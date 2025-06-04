@@ -26,7 +26,7 @@ INCLUDES += $(PYBOOST_INCLUDES)
 LIB += $(PYBOOST_LIBS)
 
 # Python module (Boost)
-PYMOD_OUT = solver.so
+PYMOD_OUT = biqbin.so
 # C only binary
 BINS =  biqbin
 
@@ -62,7 +62,7 @@ all: clean $(BINS) $(PYMOD_OUT)
 clean-output:
 	rm -f rudy/*.output*
 	rm -f tests/rudy/*.output*
-	rm -f tests/qubos/*.output*
+	rm -f tests/qubos/*/*.output*
 
 # Clean rule #
 clean: clean-output
@@ -112,13 +112,13 @@ test-python-maxcut-all: clean-output
 
 test-python-qubo: clean-output
 	tests/qubo_test.sh \
-	"mpiexec -n 8 python3 run_qubo_test.py" tests/qubos/40/kcluster40_025_10_1.json params
+	"mpiexec -n 8 python3 -m tests.run_qubo_test" tests/qubos/40/kcluster40_025_10_1.json params
 
 test-python-qubo-all-small:
 	tests/test_all_qubo.sh tests/qubos/40 8
 	tests/test_all_qubo.sh tests/qubos/80 8
 
-test-paython-qubo-all-large:
+test-python-qubo-all-large:
 	tests/test_all_qubo.sh tests/qubos/100 8
 	tests/test_all_qubo.sh tests/qubos/120 8
 	tests/test_all_qubo.sh tests/qubos/140 8
