@@ -74,12 +74,12 @@ class MaxCutSolver:
             int: rank
         """
         return get_rank()
-    
+
     def save_result(self, result, output_path=None):
         output_path = self._process_output_path(output_path)
         with open(output_path, "w") as f:
             json.dump(result, f, default=self._convert_numpy)
-            
+
     def _process_output_path(self, output_path: str) -> str:
         if output_path is None:
             return self.problem_instance_name + ".output.json"
@@ -93,6 +93,7 @@ class MaxCutSolver:
         if isinstance(obj, np.generic):
             return obj.item()
         raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
 
 class DataGetter(ABC):
     """Abstract class to parse qubo data
@@ -220,7 +221,13 @@ class QUBOSolver(MaxCutSolver):
                 result["solution"])
             computed_val = 0.5 * self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x)
             cardinality = qubo_x.sum()
-            return {'maxcut': {'solution': result, 'x': mc_x, 'time': result['time']}, 'qubo': {'solution': qubo_solution, 'x': qubo_x, 'computed_val': float(computed_val)},
-                    'cardinality': float(cardinality)}
+            return {'maxcut': {'computed_val': result['max_val'],
+                               'solution': result["solution"],
+                               'x': mc_x, },
+                    'qubo': {'computed_val': float(computed_val),
+                             'solution': qubo_solution,
+                             'x': qubo_x},
+                'cardinality': float(cardinality),
+                'time': result['time']}
         else:
             return None
