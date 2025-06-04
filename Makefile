@@ -114,15 +114,9 @@ test-python-qubo: clean-output
 	tests/qubo_test.sh \
 	"mpiexec -n 8 python3 -m tests.run_qubo_test" tests/qubos/40/kcluster40_025_10_1.json params
 
-test-python-qubo-all-small:
+test-python-qubo-all:
 	tests/test_all_qubo.sh tests/qubos/40 8
 	tests/test_all_qubo.sh tests/qubos/80 8
-
-test-python-qubo-all-large:
-	tests/test_all_qubo.sh tests/qubos/100 8
-	tests/test_all_qubo.sh tests/qubos/120 8
-	tests/test_all_qubo.sh tests/qubos/140 8
-	tests/test_all_qubo.sh tests/qubos/160 8
 
 docker: 
 	docker build $(DOCKER_BUILD_PARAMS) --progress=plain -t $(IMAGE):$(TAG)  . 

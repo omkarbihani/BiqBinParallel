@@ -32,7 +32,7 @@ For more details, refer to the [GNU General Public License](https://www.gnu.org/
 
 ##  BiqBin Requirements
 
-
+Biqbin has been tested on linux based operating systems.
 
 ###  System Dependencies - see Setup for Conda-based build:
 
@@ -213,3 +213,8 @@ Please check the following Python files to find how to setup biqbin solver throu
 | `time_limit`        | Maximum runtime in **seconds**. If `0`, runs until optimal solution is found   |
 | `branchingStrategy` | Branching strategy:<br>`0 = LEAST_FRACTIONAL`<br>`1 = MOST_FRACTIONAL`         |
 ---
+
+## Contact information
+
+For any inquiries about the software provided use the following contacts:
+- Beno Zupanc: [Github account](https://github.com/Zvmcevap) or [email](beno.zupanc@rudolfovo.eu)
