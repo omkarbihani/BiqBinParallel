@@ -171,6 +171,11 @@ Please check the following Python files to find how to setup biqbin solver throu
 
 ---
 
+## Evil QUBOs
+A collection of challenging QUBOs is located in `evil_qubos/` folder
+
+---
+
 ## Explanation of Parameters
 
 
