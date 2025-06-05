@@ -31,20 +31,19 @@ class QuboSimulatedAnnealing(QUBOSolver):
 
         self.heuristic_counter += 1
 
-        # default_heuristic(L0, L, xfixed, sol_X, x)
-        # return default_heuristic(L0, L, xfixed, sol_X, x)
-
         _x = np.array(
             list(self.sampler.sample_qubo(-L[:-1, :-1],
                  num_reads=self.num_reads).first.sample.values()),
             dtype=np.int32
         )
-        #  This can be likely simplified.
-        _x = 2*_x-1
-        _x = np.hstack([_x, [-1]])
-        _x = 1/2*(_x+1)
 
-        # copy the results into x, might want to make it return it instead, and we can evaluate it in cpp?
+        #  This can be likely simplified.
+        # _x = 2*_x-1                # normalize between -1, 1
+        # _x = np.hstack([_x, [-1]]) # append -1
+        # _x = 1/2*(_x+1)            # normalize back to 0, 1
+
+        _x = np.hstack([_x, [0]]) # simplification for above
+
         j = 0
         for i in range(len(x)):
             if xfixed[i] == 0:
