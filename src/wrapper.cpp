@@ -79,7 +79,7 @@ const char *type_name<int>() { return "int32"; }
 /// @param np_in numpy array passed in
 /// @param dimensions checks the shape of the np array
 template <typename T>
-void check_np_array_validity(np::ndarray np_in, int dimensions, const std::string &np_array_name = "")
+void check_np_array_validity(const np::ndarray &np_in, int dimensions, const std::string &np_array_name = "")
 {
     // Check dtype
     if (np_in.get_dtype() != np::dtype::get_builtin<T>())

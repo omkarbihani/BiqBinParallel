@@ -78,12 +78,18 @@ class MaxCutSolver:
         return get_rank()
 
     def save_result(self, result, output_path=None):
+        """_summary_
+
+        Args:
+            result (dict): result dictionary returned by biqbin
+            output_path (str, optional): custom path to an output file. Defaults to None.
+        """
         output_path = self._process_output_path(output_path)
         with open(output_path, "w") as f:
             json.dump(result, f, default=self._convert_numpy)
 
     def _process_output_path(self, output_path: str) -> str:
-        if output_path is None:
+        if output_path is None or output_path == self.problem_instance_name:
             return self.problem_instance_name + ".output.json"
         if not output_path.endswith(".json"):
             output_path += ".json"
@@ -169,7 +175,7 @@ class QUBOSolver(MaxCutSolver):
         Args:
             qubo (np.ndarray): qubo as 2d numpy array
         Returns:
-            2d np.ndarray: adjacency matrix for max cut problem
+            np.ndarray: adjacency matrix for max cut problem
         """
         q_sym = 1/2*(qubo.T + qubo)
         Qe_plus_c = -np.array([(np.sum(q_sym, 1))])
@@ -180,7 +186,7 @@ class QUBOSolver(MaxCutSolver):
             [Qe_plus_c, np.zeros((1, 1))]
         ])
 
-    def _maxcut_solution2qubo_solution(self, maxcut_solution: np.ndarray) -> np.ndarray:
+    def _maxcut_solution2qubo_solution(self, maxcut_solution: np.ndarray):
         """Convert maxcut solution nodes to qubo solution node
 
         Args:
