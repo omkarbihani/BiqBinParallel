@@ -117,7 +117,7 @@ class DataGetter(ABC):
 
 class DataGetterJson(DataGetter):
     """Reads qubo instance file, should be a json dictionary with "qubo" key
-    and a scipy sparse matrix as value.
+    and a COO sparse matrix with data, row and col. Indices starts from zero.
     """
 
     def __init__(self, filename: str):
