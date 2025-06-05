@@ -11,3 +11,4 @@
 - added biqbin_base.py biqbin_maxcut.py and biqbin_qubo.py for 2 different wrapped versions of the solver (maxcut and qubo) 
 - added test instances and bash scripts to run tests for all versions
 - updated README file and added .md file extension
+- Added and tested biqbin_heuristic.py for overridding of original heuristic function

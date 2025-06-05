@@ -167,7 +167,7 @@ Please check the following Python files to find how to setup biqbin solver throu
 ---
 
 > **NOTE:** The default **maximum problem size** is **1024 nodes**.  
-> If you require more, **edit** the value of `NMAX` in `biqbin.h`.
+> If you require more, **edit** the value of `NMAX` in `biqbin_cpp_api.h`.
 
 ---
 
