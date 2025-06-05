@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 import json
 
-from solver import (run, set_heuristic,
+from biqbin import (run, set_heuristic,
                     default_heuristic,
                     get_rank, set_read_data,
                     default_read_data)
@@ -62,7 +62,9 @@ class MaxCutSolver:
             dict: result dict with keys: "max_val" - max cut solution value, "solution" - nodes in this solution, "time" - spent solving 
         """
         result = run(self.solver_name, self.problem_instance_name, self.params)
+
         if (self.get_rank() == 0):
+            result['maxcut']['solution'] = result['maxcut']['solution'].tolist()
             return result
         else:
             return None
@@ -191,7 +193,7 @@ class QUBOSolver(MaxCutSolver):
 
         _x_mc = np.array(maxcut_solution, dtype=int)-1
         x_mc_sol = np.ones(n + 1)
-        xx = np.zeros(n + 1)
+        xx = np.zeros(n + 1, dtype=int)
         xx[_x_mc] = 1
 
         x_mc_sol[_x_mc] = -1
@@ -199,7 +201,7 @@ class QUBOSolver(MaxCutSolver):
         x_mc_sol
         y = 1/2*(x_mc_sol+1)[:-1]
         qubo_solution = np.nonzero(y)[0] + 1
-        return qubo_solution, y, xx
+        return qubo_solution.tolist(), y.astype(int).tolist(), xx.tolist()
 
     def read_data(self) -> np.ndarray:
         """Read qubo json file, return an adjacency matrix for maxcut
@@ -217,17 +219,14 @@ class QUBOSolver(MaxCutSolver):
         """
         result = super().run()
         if (self.get_rank() == 0):
-            qubo_solution, qubo_x, mc_x = self._maxcut_solution2qubo_solution(
-                result["solution"])
-            computed_val = 0.5 * self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x)
-            cardinality = qubo_x.sum()
-            return {'maxcut': {'computed_val': result['max_val'],
-                               'solution': result["solution"],
-                               'x': mc_x, },
-                    'qubo': {'computed_val': float(computed_val),
+            qubo_solution, qubo_x, mc_x = self._maxcut_solution2qubo_solution(result["maxcut"]["solution"])
+            computed_val = self.data_getter.problem_instance().dot(qubo_x).dot(qubo_x)
+            cardinality = sum(qubo_x)
+            result['maxcut']['x'] = mc_x
+            result['qubo'] = {'computed_val': float(computed_val),
                              'solution': qubo_solution,
-                             'x': qubo_x},
-                'cardinality': float(cardinality),
-                'time': result['time']}
+                             'x': qubo_x,
+                             'cardinality': float(cardinality)}
+            return result
         else:
             return None

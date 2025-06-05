@@ -2,19 +2,11 @@ import numpy as np
 import sys
 from neal import SimulatedAnnealingSampler
 from biqbin_base import QUBOSolver, DataGetterJson, default_heuristic
-import warnings
 import logging
 from copy import deepcopy
 
+
 logger = logging.getLogger(__name__)
-
-
-"""
-*** TESTING ONLY, THIS FILE IS STILL A WORK IN PROGRESS ***
-"""
-warnings.warn(
-    "This functionality is still under development and needs excessive testing!", UserWarning
-)
 
 
 class QuboSimulatedAnnealing(QUBOSolver):
@@ -103,5 +95,6 @@ if __name__ == '__main__':
     rank = solver.get_rank()
     print(f"{rank=} heuristics ran {solver.heuristic_counter} times")
     if rank == 0:
-        print(f"{rank=}")
+        # Master rank prints the results
         print(result)
+        solver.save_result(result)

@@ -1,4 +1,4 @@
-# BiqBin: A Solver for Max-Cut and Unconstrained Binary QP
+# BiqBin: A Solver for Max-Cut and Unconstrained Binary Quadratic Problem
 
 **Copyright © 2021 — The BiqBin Project**  
 Funded by **FWF (I 3199-N31)** and **ARRS (P2-0162)**
@@ -30,23 +30,6 @@ For more details, refer to the [GNU General Public License](https://www.gnu.org/
 
 ---
 
-##  BiqBin Requirements
-
-Biqbin has been tested on linux based operating systems.
-
-###  System Dependencies - see Setup for Conda-based build:
-
-- `build-essential`
-- `libopenblas-dev`
-- `mpich`
-- `Python.Boost`
-- `python>=3.12`
-
-###  Python Packages:
-
-- `scipy`
-- `numpy`
-- `dwave-neal`
 
 ##  Setup (Conda-based Build)
 
@@ -104,8 +87,8 @@ pip install -r requirements.txt
 
 #### 5. Compile using Makefile
 ```bash
-make clean
 make
+make test
 ```
 
 ###  Docker
@@ -178,6 +161,7 @@ Please check the following Python files to find how to setup biqbin solver throu
 
 - `biqbin_maxcut.py`: Example on how to run the default version of biqbin.
 - `biqbin_qubo.py`: Example on how to run QUBO problem.
+- `biqbin_heuristic.py`: Example on how to custom heuristc for lower bound estimation.
 
 
 ---
