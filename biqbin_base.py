@@ -289,7 +289,8 @@ class QUBOSolver(MaxCutSolver):
             result['qubo'] = {'computed_val': float(computed_val),
                              'solution': qubo_solution,
                              'x': qubo_x,
-                             'cardinality': float(cardinality)}
+                             'cardinality': float(cardinality)
+                             }
             return result
         else:
             return None

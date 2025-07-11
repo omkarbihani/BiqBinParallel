@@ -14,6 +14,7 @@ class QuboSimulatedAnnealing(QUBOSolver):
         super().__init__(data_gettr, params)
         self.sampler = SimulatedAnnealingSampler()
         self.num_reads = num_reads
+        self.max_node_depth = 0
 
     def heuristic(self, L0: np.ndarray, L: np.ndarray, xfixed: np.array, sol_X: np.array, x: np.array):
         """Heuristc with D-Waves simulated annealing sampler
@@ -28,7 +29,6 @@ class QuboSimulatedAnnealing(QUBOSolver):
         Returns:
             np.ndarray: solution nodes provided by the heuristc, should be in 0, 1 form (1 node is chosen, 0 it is not chosen)
         """
-
         self.heuristic_counter += 1
 
         _x = np.array(
@@ -82,7 +82,8 @@ if __name__ == '__main__':
 
     # https://stackoverflow.com/questions/7016056/python-logging-not-outputting-anything
     logging.basicConfig()
-    logging.root.setLevel(logging.DEBUG)
+    # logging.root.setLevel(logging.DEBUG)
+    logging.root.setLevel(logging.INFO)
 
     _, problem_instance_file_name, params = sys.argv
 
@@ -93,6 +94,7 @@ if __name__ == '__main__':
 
     rank = solver.get_rank()
     print(f"{rank=} heuristics ran {solver.heuristic_counter} times")
+
     if rank == 0:
         # Master rank prints the results
         print(result)

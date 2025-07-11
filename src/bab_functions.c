@@ -20,7 +20,12 @@ extern double TIME;
 extern int stopped;
 
 extern int num_workers_used;
-
+int max_depth = 0;
+void inc_max_depth(int d) {
+    if (max_depth < d) {
+        max_depth = d;
+    }
+}
 
 /* initialize global lower bound to 0 and global solution vector to zero */
 void initializeBabSolution() { 
@@ -281,6 +286,7 @@ void worker_Bab_Main(MPI_Datatype BabSolutiontype, MPI_Datatype BabNodetype, int
         }
 
         // free parent node
+        inc_max_depth(node->level);
         free(node); 
 
         /************ distribute subproblems ************/

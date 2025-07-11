@@ -23,6 +23,7 @@ extern Problem *SP;
 extern Problem *PP;
 extern BabSolution *BabSol;
 extern int BabPbSize;
+extern int max_depth;
 
 /* final solution */
 std::vector<int> selected_nodes;
@@ -154,6 +155,8 @@ p::dict run_py(char *prog_name, char *problem_instance_name, char *params_file_n
     result_dict["maxcut"] = nested;
     result_dict["maxcut"]["computed_val"] = Bab_LBGet();
     result_dict["maxcut"]["solution"] = get_selected_nodes_np_array();
+    result_dict["maxcut"]["max_depth"] = max_depth;
+    result_dict["maxcut"]["eval_bab_nodes"] = Bab_numEvalNodes();
     return result_dict;
 }
 
@@ -162,7 +165,8 @@ double run_heuristic_python(
     const np::ndarray &P_L_array,
     const np::ndarray &xfixed_array,
     const np::ndarray &node_sol_X_array,
-    const np::ndarray &x_array)
+    const np::ndarray &x_array
+    )
 {
     // Check if input is valid
     check_np_array_validity<double>(P0_L_array, 2, "P0_L");

@@ -11,11 +11,9 @@ static int Bab_numNodes = 0;        // number of B&B nodes
 BabNode *BabRoot;                   // root node
 Heap *heap = NULL;                  // heap is allocated as array of BabNode*
 
-
 double Bab_LBGet(void) { return BabLB; }
 int Bab_numEvalNodes(void) { return Bab_numNodes; }
 void Bab_incEvalNodes(void) { ++Bab_numNodes; }
-
 
 /* Function that determines priority of the BaBNode-s.
  * Priority is based on upper bound: 

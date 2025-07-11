@@ -12,6 +12,7 @@ extern double diff;
 extern BiqBinParameters params;
 extern double TIME;
 extern FILE *output;
+extern int max_depth;
 
 int num_workers_used = 0;
 
@@ -155,7 +156,7 @@ int wrapped_main(int argc, char **argv) {
             --numbFreeWorkers;
 
             MPI_Send(&over, 1, MPI_INT, worker, OVER, MPI_COMM_WORLD);
-	    MPI_Send(&g_lowerBound, 1, MPI_DOUBLE, worker, LOWER_BOUND, MPI_COMM_WORLD);
+	        MPI_Send(&g_lowerBound, 1, MPI_DOUBLE, worker, LOWER_BOUND, MPI_COMM_WORLD);
             MPI_Send(child_node, 1, BabNodetype, worker, PROBLEM, MPI_COMM_WORLD);
 
             free(child_node);
@@ -248,6 +249,9 @@ int wrapped_main(int argc, char **argv) {
     FINISH:
 
     /* Print results to the standard output and to the output file */
+    int global_max_depth;
+    MPI_Reduce(&max_depth, &global_max_depth, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+    max_depth = global_max_depth;
     if (rank == 0) {
         #ifndef PURE_C
         copy_solution();
